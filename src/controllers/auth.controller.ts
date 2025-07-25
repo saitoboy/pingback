@@ -72,7 +72,12 @@ export class AuthController {
         return res.status(409).json({ mensagem: 'Email já cadastrado.' });
       }
       logSuccess(`Usuário cadastrado com sucesso: ${usuarioCriado.email_usuario}.`, 'controller', { usuario_id: usuarioCriado.usuario_id });
-      return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.', usuario: usuarioCriado });
+      // Remove o campo senha_usuario da resposta por segurança
+      const usuarioSemSenha = { ...usuarioCriado };
+      if ('senha_usuario' in usuarioSemSenha) {
+        delete usuarioSemSenha.senha_usuario;
+      }
+      return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.', usuario: usuarioSemSenha });
     } catch (error: any) {
       if (error.code === '23505') {
         logError(`Erro no cadastro: email já cadastrado (constraint) para ${req.body.email_usuario}.`, 'controller', error);

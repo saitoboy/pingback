@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import UsuarioTipoController from '../controller/usuarioTipo.controller';
+import UsuarioTipoController from '../controllers/usuarioTipo.controller';
 import { autenticar, autorizarPor } from '../middleware/auth.middleware';
 import { TipoUsuario } from '../types/models';
 
