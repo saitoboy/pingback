@@ -6,6 +6,7 @@ import { AddressInfo } from "net";
 import connection from "./connection";
 import authRoutes from './routes/auth.routes';
 import usuarioTipoRoutes from './routes/usuarioTipo.routes';
+import professorRoutes from './routes/professor.routes';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(cors());
 app.use('/auth', authRoutes);
 app.use('/usuario-tipo', usuarioTipoRoutes);
+app.use('/professor', professorRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {

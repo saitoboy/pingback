@@ -72,12 +72,7 @@ export class AuthController {
         return res.status(409).json({ mensagem: 'Email já cadastrado.' });
       }
       logSuccess(`Usuário cadastrado com sucesso: ${usuarioCriado.email_usuario}.`, 'controller', { usuario_id: usuarioCriado.usuario_id });
-      // Remove o campo senha_usuario da resposta por segurança
-      const usuarioSemSenha = { ...usuarioCriado };
-      if ('senha_usuario' in usuarioSemSenha) {
-        delete usuarioSemSenha.senha_usuario;
-      }
-      return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.', usuario: usuarioSemSenha });
+      return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.', usuario: usuarioCriado });
     } catch (error: any) {
       if (error.code === '23505') {
         logError(`Erro no cadastro: email já cadastrado (constraint) para ${req.body.email_usuario}.`, 'controller', error);
@@ -88,6 +83,27 @@ export class AuthController {
         return res.status(400).json({ mensagem: 'O campo tipo_usuario_id deve ser o UUID do tipo de usuário, não o nome. Consulte /usuario-tipo para obter os UUIDs válidos.', detalhes: error.message });
       }
       logError('Erro no cadastro: erro inesperado ao registrar usuário. Verifique o backend.', 'controller', error);
+      return res.status(500).json({ mensagem: 'Erro interno do servidor.', detalhes: error.message });
+    }
+  }
+
+  static async buscarUsuario(req: Request, res: Response) {
+    try {
+      if (!req.usuario) {
+        logError('Usuário não autenticado ao tentar buscar dados', 'controller');
+        return res.status(401).json({ mensagem: 'Usuário não autenticado.' });
+      }
+      
+      const usuario = await AuthService.buscarUsuarioPorId(req.usuario.usuario_id);
+      if (!usuario) {
+        logError(`Usuário não encontrado: ${req.usuario.usuario_id}`, 'controller', { usuario_id: req.usuario.usuario_id });
+        return res.status(404).json({ mensagem: 'Usuário não encontrado.' });
+      }
+      
+      logSuccess(`Dados do usuário buscados: ${usuario.email_usuario}`, 'controller', { usuario_id: usuario.usuario_id });
+      return res.status(200).json({ usuario });
+    } catch (error: any) {
+      logError(`Erro ao buscar dados do usuário: ${error.message}`, 'controller', error);
       return res.status(500).json({ mensagem: 'Erro interno do servidor.', detalhes: error.message });
     }
   }

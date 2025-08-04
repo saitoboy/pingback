@@ -71,6 +71,24 @@ export class AuthService {
       throw error;
     }
   }
+
+  static async buscarUsuarioPorId(usuario_id: string): Promise<Omit<Usuario, 'senha_usuario'> | null> {
+    try {
+      const usuario: Usuario | undefined = await UsuarioModel.buscarPorId(usuario_id);
+      if (!usuario) {
+        logError('Usuário não encontrado', 'service', { usuario_id });
+        return null;
+      }
+
+      // Remove campo senha antes de retornar
+      const { senha_usuario, ...usuarioSemSenha } = usuario;
+      logSuccess('Usuário encontrado com sucesso', 'service', { usuario_id });
+      return usuarioSemSenha;
+    } catch (error) {
+      logError('Erro ao buscar usuário por ID', 'service', error);
+      throw error;
+    }
+  }
 }
 
 export default AuthService;
