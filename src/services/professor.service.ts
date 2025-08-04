@@ -7,16 +7,16 @@ export class ProfessorService {
   
   static async criarProfessor(usuario_id: string): Promise<Professor | null> {
     try {
-      // Verifica se o usuário existe
-      const usuario = await UsuarioModel.buscarPorId(usuario_id);
+      // Verifica se o usuário existe e busca o tipo
+      const usuario = await UsuarioModel.buscarPorIdComTipo(usuario_id);
       if (!usuario) {
         logError('Usuário não encontrado para criar professor', 'service', { usuario_id });
         return null;
       }
 
       // Verifica se o usuário é do tipo PROFESSOR
-      if (usuario.tipo_usuario_id !== TipoUsuario.PROFESSOR) {
-        logError('Usuário não é do tipo PROFESSOR', 'service', { usuario_id, tipo: usuario.tipo_usuario_id });
+      if (usuario.nome_tipo !== TipoUsuario.PROFESSOR) {
+        logError('Usuário não é do tipo PROFESSOR', 'service', { usuario_id, tipo: usuario.nome_tipo });
         return null;
       }
 

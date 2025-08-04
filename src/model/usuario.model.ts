@@ -27,3 +27,27 @@ export const criar = async (usuario: Omit<Usuario, 'usuario_id' | 'created_at' |
 };
 
 // Outros métodos podem ser adicionados conforme necessidade
+
+// Busca usuário com dados do tipo de usuário (JOIN)
+export const buscarComTipoUsuario = async (email_usuario: string) => {
+  return await connection(tabela)
+    .join('usuario_tipo', 'usuario.tipo_usuario_id', 'usuario_tipo.tipo_usuario_id')
+    .select(
+      'usuario.*',
+      'usuario_tipo.nome_tipo'
+    )
+    .where('usuario.email_usuario', email_usuario)
+    .first();
+};
+
+// Busca usuário por ID com dados do tipo de usuário (JOIN)
+export const buscarPorIdComTipo = async (usuario_id: string) => {
+  return await connection(tabela)
+    .join('usuario_tipo', 'usuario.tipo_usuario_id', 'usuario_tipo.tipo_usuario_id')
+    .select(
+      'usuario.*',
+      'usuario_tipo.nome_tipo'
+    )
+    .where('usuario.usuario_id', usuario_id)
+    .first();
+};

@@ -38,7 +38,7 @@ export const autenticar = (req: Request, res: Response, next: NextFunction): voi
     req.usuario = {
       usuario_id: usuarioDecodificado.usuario_id,
       nome_usuario: usuarioDecodificado.nome_usuario,
-      email_usuario: usuarioDecodificado.email_usuario,
+      email_usuario: usuarioDecodificado.email_usuario || '', // pode não estar no token
       tipo_usuario_id: usuarioDecodificado.tipo_usuario_id,
     };
     next();
