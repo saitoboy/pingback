@@ -7,6 +7,9 @@ import connection from "./connection";
 import authRoutes from './routes/auth.routes';
 import usuarioTipoRoutes from './routes/usuarioTipo.routes';
 import professorRoutes from './routes/professor.routes';
+import alunoRoutes from './routes/aluno.routes';
+import religiaoRoutes from './routes/religiao.routes';
+import certidaoRoutes from './routes/certidao.routes';
 
 const app = express();
 
@@ -15,12 +18,19 @@ app.use(cors());
 app.use('/auth', authRoutes);
 app.use('/usuario-tipo', usuarioTipoRoutes);
 app.use('/professor', professorRoutes);
+app.use('/aluno', alunoRoutes);
+app.use('/religiao', religiaoRoutes);
+app.use('/certidao', certidaoRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
-    const address = server.address() as AddressInfo;
-    require('./utils/logger').logSuccess(`Servidor rodando em http://localhost:${address.port}`, 'server');
+    const address = server.address();
+    if (address && typeof address !== 'string') {
+      require('./utils/logger').logSuccess(`🚀 Servidor rodando em http://localhost:${address.port}`, 'server');
+    } else {
+      require('./utils/logger').logSuccess(`🚀 Servidor rodando na porta ${process.env.PORT || 3003}`, 'server');
+    }
   } else {
-    require('./utils/logger').logError('Falha ao iniciar o servidor', 'server');
+    require('./utils/logger').logError('❌ Falha ao iniciar o servidor', 'server');
   }
 });
