@@ -969,3 +969,144 @@ Authorization: Bearer <token-jwt>
 4. **Telefone**: Apenas números, 10 ou 11 dígitos
 5. **Email**: Formato válido obrigatório
 6. **Constraint Errors**: Violações de chave estrangeira retornam códigos específicos
+7. **Códigos de Erro**: Sempre presente no campo `codigo_erro` para facilitar tratamento programático
+8. **Mensagens Específicas**: Cada erro retorna uma mensagem detalhada explicando exatamente o problema
+9. **Campos Extras**: Erros incluem campos adicionais com informações relevantes (ex: `cpf_problematico`, `dica`)
+10. **Status HTTP**: Códigos padronizados (400 para validação, 404 para não encontrado, 409 para conflito, 500 para erro interno)
+
+---
+
+## 🚨 Códigos de Erro Detalhados
+
+### Responsáveis
+
+| Código de Erro | Status HTTP | Descrição | Campos Extras |
+|---|---|---|---|
+| `CAMPOS_OBRIGATORIOS` | 400 | Campos obrigatórios ausentes | `dados_faltando[]` |
+| `CAMPO_OBRIGATORIO` | 400 | Campo específico obrigatório | `campo_faltando` |
+| `CPF_INVALIDO` | 400 | CPF com formato inválido (≠ 11 dígitos) | `cpf_recebido`, `dica` |
+| `CPF_FORMATO_INVALIDO` | 400 | CPF com formato inválido na busca | `cpf_recebido`, `dica` |
+| `CPF_DUPLICADO` | 409 | CPF já cadastrado para outro responsável | `cpf_problematico` |
+| `TELEFONE_INVALIDO` | 400 | Telefone com formato inválido (< 10 ou > 11 dígitos) | `telefone_recebido`, `dica` |
+| `EMAIL_INVALIDO` | 400 | Email com formato inválido | `email_recebido`, `dica` |
+| `ALUNO_NAO_ENCONTRADO` | 404 | Aluno não existe no sistema | `aluno_id_fornecido`, `dica` |
+| `PARENTESCO_NAO_ENCONTRADO` | 404 | Parentesco não existe no sistema | `parentesco_id_fornecido`, `dica` |
+| `RESPONSAVEL_NAO_ENCONTRADO` | 404 | Responsável não encontrado por ID | `responsavel_id_fornecido` |
+| `RESPONSAVEL_NAO_ENCONTRADO_CPF` | 404 | Responsável não encontrado por CPF | `cpf_pesquisado` |
+| `NENHUM_CAMPO_PARA_ATUALIZAR` | 400 | Nenhum campo fornecido na atualização | - |
+| `ID_OBRIGATORIO` | 400 | ID do responsável é obrigatório | - |
+| `ID_ALUNO_OBRIGATORIO` | 400 | ID do aluno é obrigatório | - |
+| `CPF_OBRIGATORIO` | 400 | CPF é obrigatório na busca | - |
+| `ERRO_INTERNO` | 500 | Erro interno do servidor | - |
+
+### Parentesco
+
+| Código de Erro | Status HTTP | Descrição | Campos Extras |
+|---|---|---|---|
+| `NOME_OBRIGATORIO` | 400 | Nome do parentesco é obrigatório | - |
+| `PARENTESCO_DUPLICADO` | 409 | Já existe parentesco com este nome | `nome_existente` |
+| `PARENTESCO_NAO_ENCONTRADO` | 404 | Parentesco não encontrado | `parentesco_id_fornecido` |
+| `PARENTESCO_EM_USO` | 400 | Parentesco vinculado a responsáveis | `total_responsaveis` |
+
+### Alunos
+
+| Código de Erro | Status HTTP | Descrição | Campos Extras |
+|---|---|---|---|
+| `CAMPOS_OBRIGATORIOS` | 400 | Campos obrigatórios ausentes | `dados_faltando[]` |
+| `ALUNO_NAO_ENCONTRADO` | 404 | Aluno não encontrado | `aluno_id_fornecido` |
+| `CPF_DUPLICADO` | 409 | CPF já cadastrado | `cpf_problematico` |
+| `MATRICULA_DUPLICADA` | 409 | Número de matrícula já existe | `matricula_problematica` |
+
+### Autenticação
+
+| Código de Erro | Status HTTP | Descrição | Campos Extras |
+|---|---|---|---|
+| `CREDENCIAIS_INVALIDAS` | 401 | Email ou senha incorretos | - |
+| `TOKEN_AUSENTE` | 401 | Token de autorização não fornecido | - |
+| `TOKEN_INVALIDO` | 401 | Token JWT inválido ou expirado | - |
+| `PERMISSAO_NEGADA` | 403 | Usuário sem permissão para esta ação | `permissao_requerida` |
+| `EMAIL_DUPLICADO` | 409 | Email já cadastrado | `email_problematico` |
+
+---
+
+## 📋 Exemplos de Teste no Postman
+
+### 1. Teste de CPF Duplicado
+**POST** `/responsavel`
+```json
+{
+  "aluno_id": "uuid-valido",
+  "nome_responsavel": "João",
+  "sobrenome_responsavel": "Silva",
+  "cpf_responsavel": "12345678901",  // ← CPF já existente
+  "rg_responsavel": "123456789",
+  "telefone_responsavel": "11987654321",
+  "email_responsavel": "joao@email.com",
+  "parentesco_id": "uuid-valido"
+}
+```
+**Resposta esperada:**
+```json
+{
+  "error": "❌ CPF já cadastrado",
+  "message": "O CPF 12345678901 já está cadastrado para outro responsável",
+  "codigo_erro": "CPF_DUPLICADO",
+  "cpf_problematico": "12345678901"
+}
+```
+
+### 2. Teste de CPF Inválido
+**POST** `/responsavel`
+```json
+{
+  "cpf_responsavel": "123456789"  // ← Apenas 9 dígitos
+}
+```
+**Resposta esperada:**
+```json
+{
+  "error": "❌ CPF inválido",
+  "message": "CPF deve ter exatamente 11 dígitos. Recebido: 123456789 (9 dígitos)",
+  "codigo_erro": "CPF_INVALIDO",
+  "cpf_recebido": "123456789",
+  "dica": "Envie apenas números (ex: 12345678901)"
+}
+```
+
+### 3. Teste de Aluno Inexistente
+**POST** `/responsavel`
+```json
+{
+  "aluno_id": "uuid-inexistente",  // ← UUID que não existe
+  "nome_responsavel": "Maria",
+  "cpf_responsavel": "98765432100"
+}
+```
+**Resposta esperada:**
+```json
+{
+  "error": "❌ Aluno não encontrado",
+  "message": "Não foi encontrado nenhum aluno com o ID: uuid-inexistente",
+  "codigo_erro": "ALUNO_NAO_ENCONTRADO",
+  "aluno_id_fornecido": "uuid-inexistente",
+  "dica": "Verifique se o aluno_id está correto ou se o aluno existe no sistema"
+}
+```
+
+### 4. Teste de Email Inválido
+**POST** `/responsavel`
+```json
+{
+  "email_responsavel": "email-invalido"  // ← Sem @dominio.com
+}
+```
+**Resposta esperada:**
+```json
+{
+  "error": "❌ Email inválido",
+  "message": "O email email-invalido não possui formato válido",
+  "codigo_erro": "EMAIL_INVALIDO",
+  "email_recebido": "email-invalido",
+  "dica": "Use formato válido como: nome@dominio.com"
+}
+```
