@@ -27,19 +27,12 @@ export class ResponsavelController {
         return res.status(400).json({
           error: '❌ Dados incompletos',
           message: `Os seguintes campos são obrigatórios: ${camposFaltando.join(', ')}`,
+          codigo_erro: 'CAMPOS_OBRIGATORIOS',
           dados_faltando: camposFaltando
         });
       }
 
       const novoResponsavel = await ResponsavelService.criarResponsavel(dadosResponsavel);
-      
-      if (!novoResponsavel) {
-        logError('Falha na criação do responsável no service', 'controller', dadosResponsavel);
-        return res.status(400).json({
-          error: '❌ Erro na validação',
-          message: 'Não foi possível criar o responsável. Verifique os dados fornecidos.'
-        });
-      }
 
       logSuccess('Responsável criado com sucesso', 'controller', { 
         responsavel_id: novoResponsavel.responsavel_id,
@@ -51,11 +44,87 @@ export class ResponsavelController {
         data: novoResponsavel
       });
       
-    } catch (error) {
-      logError('Erro interno ao criar responsável', 'controller', error);
+    } catch (error: any) {
+      logError('Erro ao criar responsável', 'controller', error);
+      
+      // Tratar erros específicos do service
+      if (error.codigo) {
+        switch (error.codigo) {
+          case 'CAMPO_OBRIGATORIO':
+            return res.status(400).json({
+              error: '❌ Campo obrigatório ausente',
+              message: `O campo '${error.campo}' é obrigatório`,
+              codigo_erro: 'CAMPO_OBRIGATORIO',
+              campo_faltando: error.campo
+            });
+
+          case 'CPF_DUPLICADO':
+            return res.status(409).json({
+              error: '❌ CPF já cadastrado',
+              message: `O CPF ${error.cpf} já está cadastrado para outro responsável`,
+              codigo_erro: 'CPF_DUPLICADO',
+              cpf_problematico: error.cpf
+            });
+
+          case 'CPF_INVALIDO':
+            return res.status(400).json({
+              error: '❌ CPF inválido',
+              message: `CPF deve ter exatamente 11 dígitos. Recebido: ${error.cpf}`,
+              codigo_erro: 'CPF_INVALIDO',
+              cpf_recebido: error.cpf,
+              dica: 'Envie apenas números (ex: 12345678901)'
+            });
+
+          case 'TELEFONE_INVALIDO':
+            return res.status(400).json({
+              error: '❌ Telefone inválido',
+              message: `Telefone deve ter 10 ou 11 dígitos. Recebido: ${error.telefone}`,
+              codigo_erro: 'TELEFONE_INVALIDO',
+              telefone_recebido: error.telefone,
+              dica: 'Envie apenas números (ex: 11987654321)'
+            });
+
+          case 'EMAIL_INVALIDO':
+            return res.status(400).json({
+              error: '❌ Email inválido',
+              message: `O email ${error.email} não possui formato válido`,
+              codigo_erro: 'EMAIL_INVALIDO',
+              email_recebido: error.email,
+              dica: 'Use formato válido como: nome@dominio.com'
+            });
+
+          case 'ALUNO_NAO_ENCONTRADO':
+            return res.status(404).json({
+              error: '❌ Aluno não encontrado',
+              message: `Não foi encontrado nenhum aluno com o ID: ${error.aluno_id}`,
+              codigo_erro: 'ALUNO_NAO_ENCONTRADO',
+              aluno_id_fornecido: error.aluno_id,
+              dica: 'Verifique se o aluno_id está correto ou se o aluno existe no sistema'
+            });
+
+          case 'PARENTESCO_NAO_ENCONTRADO':
+            return res.status(404).json({
+              error: '❌ Parentesco não encontrado',
+              message: `Não foi encontrado nenhum parentesco com o ID: ${error.parentesco_id}`,
+              codigo_erro: 'PARENTESCO_NAO_ENCONTRADO',
+              parentesco_id_fornecido: error.parentesco_id,
+              dica: 'Verifique se o parentesco_id está correto ou liste os parentescos disponíveis'
+            });
+
+          default:
+            return res.status(400).json({
+              error: '❌ Erro de validação',
+              message: error.message || 'Erro desconhecido na validação dos dados',
+              codigo_erro: error.codigo
+            });
+        }
+      }
+
+      // Erro genérico
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao criar o responsável'
+        message: 'Ocorreu um erro inesperado ao criar o responsável',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -70,7 +139,8 @@ export class ResponsavelController {
         logError('ID do responsável não fornecido', 'controller', { id });
         return res.status(400).json({
           error: '❌ ID inválido',
-          message: 'ID do responsável é obrigatório'
+          message: 'ID do responsável é obrigatório',
+          codigo_erro: 'ID_OBRIGATORIO'
         });
       }
 
@@ -79,7 +149,9 @@ export class ResponsavelController {
       if (!responsavel) {
         return res.status(404).json({
           error: '❌ Responsável não encontrado',
-          message: 'Nenhum responsável foi encontrado com este ID'
+          message: 'Nenhum responsável foi encontrado com este ID',
+          codigo_erro: 'RESPONSAVEL_NAO_ENCONTRADO',
+          responsavel_id_fornecido: id
         });
       }
 
@@ -97,7 +169,8 @@ export class ResponsavelController {
       logError('Erro interno ao buscar responsável', 'controller', error);
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao buscar o responsável'
+        message: 'Ocorreu um erro inesperado ao buscar o responsável',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -120,7 +193,8 @@ export class ResponsavelController {
       logError('Erro interno ao listar responsáveis', 'controller', error);
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao listar os responsáveis'
+        message: 'Ocorreu um erro inesperado ao listar os responsáveis',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -135,7 +209,8 @@ export class ResponsavelController {
         logError('ID do aluno não fornecido', 'controller', { aluno_id });
         return res.status(400).json({
           error: '❌ ID inválido',
-          message: 'ID do aluno é obrigatório'
+          message: 'ID do aluno é obrigatório',
+          codigo_erro: 'ID_ALUNO_OBRIGATORIO'
         });
       }
 
@@ -157,7 +232,8 @@ export class ResponsavelController {
       logError('Erro interno ao listar responsáveis por aluno', 'controller', error);
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao listar os responsáveis do aluno'
+        message: 'Ocorreu um erro inesperado ao listar os responsáveis do aluno',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -172,7 +248,20 @@ export class ResponsavelController {
         logError('CPF não fornecido', 'controller', { cpf });
         return res.status(400).json({
           error: '❌ CPF inválido',
-          message: 'CPF é obrigatório'
+          message: 'CPF é obrigatório',
+          codigo_erro: 'CPF_OBRIGATORIO'
+        });
+      }
+
+      // Validação básica de formato de CPF
+      const cpfLimpo = cpf.replace(/\D/g, '');
+      if (cpfLimpo.length !== 11) {
+        return res.status(400).json({
+          error: '❌ CPF inválido',
+          message: `CPF deve ter exatamente 11 dígitos. Recebido: ${cpf} (${cpfLimpo.length} dígitos)`,
+          codigo_erro: 'CPF_FORMATO_INVALIDO',
+          cpf_recebido: cpf,
+          dica: 'Envie apenas números (ex: 12345678901)'
         });
       }
 
@@ -181,12 +270,14 @@ export class ResponsavelController {
       if (!responsavel) {
         return res.status(404).json({
           error: '❌ Responsável não encontrado',
-          message: 'Nenhum responsável foi encontrado com este CPF'
+          message: 'Nenhum responsável foi encontrado com este CPF',
+          codigo_erro: 'RESPONSAVEL_NAO_ENCONTRADO_CPF',
+          cpf_pesquisado: cpfLimpo
         });
       }
 
       logSuccess('Responsável encontrado por CPF', 'controller', { 
-        cpf,
+        cpf: cpfLimpo,
         responsavel_id: responsavel.responsavel_id
       });
 
@@ -199,7 +290,8 @@ export class ResponsavelController {
       logError('Erro interno ao buscar responsável por CPF', 'controller', error);
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao buscar o responsável'
+        message: 'Ocorreu um erro inesperado ao buscar o responsável',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -217,7 +309,8 @@ export class ResponsavelController {
         logError('ID do responsável não fornecido', 'controller', { id });
         return res.status(400).json({
           error: '❌ ID inválido',
-          message: 'ID do responsável é obrigatório'
+          message: 'ID do responsável é obrigatório',
+          codigo_erro: 'ID_OBRIGATORIO'
         });
       }
 
@@ -227,7 +320,8 @@ export class ResponsavelController {
         logError('Nenhum dado fornecido para atualização', 'controller', dadosAtualizacao);
         return res.status(400).json({
           error: '❌ Dados incompletos',
-          message: 'Pelo menos um campo deve ser fornecido para atualização'
+          message: 'Pelo menos um campo deve ser fornecido para atualização',
+          codigo_erro: 'NENHUM_CAMPO_PARA_ATUALIZAR'
         });
       }
 
@@ -235,8 +329,10 @@ export class ResponsavelController {
       
       if (!responsavelAtualizado) {
         return res.status(404).json({
-          error: '❌ Responsável não encontrado ou dados inválidos',
-          message: 'Não foi possível atualizar o responsável'
+          error: '❌ Responsável não encontrado',
+          message: 'Não foi possível encontrar o responsável para atualizar',
+          codigo_erro: 'RESPONSAVEL_NAO_ENCONTRADO',
+          responsavel_id_fornecido: id
         });
       }
 
@@ -250,11 +346,60 @@ export class ResponsavelController {
         data: responsavelAtualizado
       });
       
-    } catch (error) {
-      logError('Erro interno ao atualizar responsável', 'controller', error);
+    } catch (error: any) {
+      logError('Erro ao atualizar responsável', 'controller', error);
+      
+      // Tratar erros específicos do service (similares aos de criação)
+      if (error.codigo) {
+        switch (error.codigo) {
+          case 'CPF_DUPLICADO':
+            return res.status(409).json({
+              error: '❌ CPF já está em uso',
+              message: `O CPF ${error.cpf} já está cadastrado para outro responsável`,
+              codigo_erro: 'CPF_DUPLICADO',
+              cpf_problematico: error.cpf
+            });
+
+          case 'CPF_INVALIDO':
+            return res.status(400).json({
+              error: '❌ CPF inválido',
+              message: `CPF deve ter exatamente 11 dígitos. Recebido: ${error.cpf}`,
+              codigo_erro: 'CPF_INVALIDO',
+              cpf_recebido: error.cpf,
+              dica: 'Envie apenas números (ex: 12345678901)'
+            });
+
+          case 'TELEFONE_INVALIDO':
+            return res.status(400).json({
+              error: '❌ Telefone inválido',
+              message: `Telefone deve ter 10 ou 11 dígitos. Recebido: ${error.telefone}`,
+              codigo_erro: 'TELEFONE_INVALIDO',
+              telefone_recebido: error.telefone,
+              dica: 'Envie apenas números (ex: 11987654321)'
+            });
+
+          case 'EMAIL_INVALIDO':
+            return res.status(400).json({
+              error: '❌ Email inválido',
+              message: `O email ${error.email} não possui formato válido`,
+              codigo_erro: 'EMAIL_INVALIDO',
+              email_recebido: error.email,
+              dica: 'Use formato válido como: nome@dominio.com'
+            });
+
+          default:
+            return res.status(400).json({
+              error: '❌ Erro de validação',
+              message: error.message || 'Erro desconhecido na validação dos dados',
+              codigo_erro: error.codigo
+            });
+        }
+      }
+
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao atualizar o responsável'
+        message: 'Ocorreu um erro inesperado ao atualizar o responsável',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }
@@ -269,7 +414,8 @@ export class ResponsavelController {
         logError('ID do responsável não fornecido', 'controller', { id });
         return res.status(400).json({
           error: '❌ ID inválido',
-          message: 'ID do responsável é obrigatório'
+          message: 'ID do responsável é obrigatório',
+          codigo_erro: 'ID_OBRIGATORIO'
         });
       }
 
@@ -278,7 +424,9 @@ export class ResponsavelController {
       if (!deletado) {
         return res.status(404).json({
           error: '❌ Responsável não encontrado',
-          message: 'Nenhum responsável foi encontrado com este ID para deletar'
+          message: 'Nenhum responsável foi encontrado com este ID para deletar',
+          codigo_erro: 'RESPONSAVEL_NAO_ENCONTRADO',
+          responsavel_id_fornecido: id
         });
       }
 
@@ -286,14 +434,16 @@ export class ResponsavelController {
 
       return res.status(200).json({
         success: '✅ Responsável deletado com sucesso',
-        message: 'O responsável foi removido do sistema'
+        message: 'O responsável foi removido do sistema',
+        responsavel_id_deletado: id
       });
       
     } catch (error) {
       logError('Erro interno ao deletar responsável', 'controller', error);
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
-        message: 'Ocorreu um erro inesperado ao deletar o responsável'
+        message: 'Ocorreu um erro inesperado ao deletar o responsável',
+        codigo_erro: 'ERRO_INTERNO'
       });
     }
   }

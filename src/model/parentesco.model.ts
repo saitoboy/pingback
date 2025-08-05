@@ -46,6 +46,6 @@ export const deletar = async (parentesco_id: string): Promise<boolean> => {
 
 export const buscarPorNome = async (nome_parentesco: string): Promise<Parentesco | undefined> => {
   return await connection(tabela)
-    .where('nome_parentesco', 'ilike', `%${nome_parentesco}%`)
+    .whereRaw('LOWER(nome_parentesco) = LOWER(?)', [nome_parentesco])
     .first();
 };

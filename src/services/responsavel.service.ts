@@ -17,51 +17,65 @@ export class ResponsavelService {
       
       for (const campo of camposObrigatorios) {
         if (!dadosResponsavel[campo as keyof typeof dadosResponsavel]) {
-          logError(`Campo obrigatório ausente: ${campo}`, 'service', dadosResponsavel);
-          return null;
+          const erro = new Error(`Campo obrigatório ausente: ${campo}`);
+          (erro as any).codigo = 'CAMPO_OBRIGATORIO';
+          (erro as any).campo = campo;
+          throw erro;
         }
       }
 
       // Verifica se o aluno existe
       const aluno = await AlunoModel.buscarPorId(dadosResponsavel.aluno_id);
       if (!aluno) {
-        logError('Aluno não encontrado', 'service', { aluno_id: dadosResponsavel.aluno_id });
-        return null;
+        const erro = new Error(`Aluno não encontrado com ID: ${dadosResponsavel.aluno_id}`);
+        (erro as any).codigo = 'ALUNO_NAO_ENCONTRADO';
+        (erro as any).aluno_id = dadosResponsavel.aluno_id;
+        throw erro;
       }
 
       // Verifica se o parentesco existe
       const parentesco = await ParentescoModel.buscarPorId(dadosResponsavel.parentesco_id);
       if (!parentesco) {
-        logError('Parentesco não encontrado', 'service', { parentesco_id: dadosResponsavel.parentesco_id });
-        return null;
+        const erro = new Error(`Parentesco não encontrado com ID: ${dadosResponsavel.parentesco_id}`);
+        (erro as any).codigo = 'PARENTESCO_NAO_ENCONTRADO';
+        (erro as any).parentesco_id = dadosResponsavel.parentesco_id;
+        throw erro;
       }
 
       // Verifica se já existe responsável com este CPF
       const responsavelComCpf = await ResponsavelModel.buscarPorCpf(dadosResponsavel.cpf_responsavel);
       if (responsavelComCpf) {
-        logError('CPF já cadastrado para outro responsável', 'service', { cpf: dadosResponsavel.cpf_responsavel });
-        return null;
+        const erro = new Error(`CPF ${dadosResponsavel.cpf_responsavel} já está cadastrado para outro responsável`);
+        (erro as any).codigo = 'CPF_DUPLICADO';
+        (erro as any).cpf = dadosResponsavel.cpf_responsavel;
+        throw erro;
       }
 
       // Validação básica de CPF (apenas números e 11 dígitos)
       const cpfLimpo = dadosResponsavel.cpf_responsavel.replace(/\D/g, '');
       if (cpfLimpo.length !== 11) {
-        logError('CPF deve ter 11 dígitos', 'service', { cpf: dadosResponsavel.cpf_responsavel });
-        return null;
+        const erro = new Error(`CPF deve ter 11 dígitos. Recebido: ${dadosResponsavel.cpf_responsavel} (${cpfLimpo.length} dígitos)`);
+        (erro as any).codigo = 'CPF_INVALIDO';
+        (erro as any).cpf = dadosResponsavel.cpf_responsavel;
+        throw erro;
       }
 
       // Validação básica de telefone
       const telefoneLimpo = dadosResponsavel.telefone_responsavel.replace(/\D/g, '');
       if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
-        logError('Telefone deve ter 10 ou 11 dígitos', 'service', { telefone: dadosResponsavel.telefone_responsavel });
-        return null;
+        const erro = new Error(`Telefone deve ter 10 ou 11 dígitos. Recebido: ${dadosResponsavel.telefone_responsavel} (${telefoneLimpo.length} dígitos)`);
+        (erro as any).codigo = 'TELEFONE_INVALIDO';
+        (erro as any).telefone = dadosResponsavel.telefone_responsavel;
+        throw erro;
       }
 
       // Validação básica de email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(dadosResponsavel.email_responsavel)) {
-        logError('Email inválido', 'service', { email: dadosResponsavel.email_responsavel });
-        return null;
+        const erro = new Error(`Email inválido: ${dadosResponsavel.email_responsavel}`);
+        (erro as any).codigo = 'EMAIL_INVALIDO';
+        (erro as any).email = dadosResponsavel.email_responsavel;
+        throw erro;
       }
 
       // Cria o responsável
@@ -177,48 +191,88 @@ export class ResponsavelService {
       // Verifica se o responsável existe
       const responsavelExistente = await ResponsavelModel.buscarPorId(responsavel_id);
       if (!responsavelExistente) {
-        logError('Responsável não encontrado para atualizar', 'service', { responsavel_id });
-        return null;
+        const erro = new Error(`Responsável não encontrado com ID: ${responsavel_id}`);
+        (erro as any).codigo = 'RESPONSAVEL_NAO_ENCONTRADO';
+        (erro as any).responsavel_id = responsavel_id;
+        throw erro;
       }
 
-      // Se está atualizando CPF, verifica duplicatas
+      // Se está atualizando CPF, verifica duplicatas e valida formato
       if (dadosAtualizacao.cpf_responsavel) {
         const cpfLimpo = dadosAtualizacao.cpf_responsavel.replace(/\D/g, '');
+        
+        // Validação de formato
+        if (cpfLimpo.length !== 11) {
+          const erro = new Error(`CPF deve ter 11 dígitos. Recebido: ${dadosAtualizacao.cpf_responsavel} (${cpfLimpo.length} dígitos)`);
+          (erro as any).codigo = 'CPF_INVALIDO';
+          (erro as any).cpf = dadosAtualizacao.cpf_responsavel;
+          throw erro;
+        }
+        
+        // Verifica duplicata
         const responsavelComCpf = await ResponsavelModel.buscarPorCpf(cpfLimpo);
         if (responsavelComCpf && responsavelComCpf.responsavel_id !== responsavel_id) {
-          logError('CPF já está sendo usado por outro responsável', 'service', { cpf: cpfLimpo });
-          return null;
+          const erro = new Error(`CPF ${cpfLimpo} já está cadastrado para outro responsável`);
+          (erro as any).codigo = 'CPF_DUPLICADO';
+          (erro as any).cpf = cpfLimpo;
+          throw erro;
         }
         dadosAtualizacao.cpf_responsavel = cpfLimpo;
       }
 
-      // Validações de campos se fornecidos
+      // Validação de telefone se fornecido
       if (dadosAtualizacao.telefone_responsavel) {
         const telefoneLimpo = dadosAtualizacao.telefone_responsavel.replace(/\D/g, '');
         if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
-          logError('Telefone deve ter 10 ou 11 dígitos', 'service', { telefone: dadosAtualizacao.telefone_responsavel });
-          return null;
+          const erro = new Error(`Telefone deve ter 10 ou 11 dígitos. Recebido: ${dadosAtualizacao.telefone_responsavel} (${telefoneLimpo.length} dígitos)`);
+          (erro as any).codigo = 'TELEFONE_INVALIDO';
+          (erro as any).telefone = dadosAtualizacao.telefone_responsavel;
+          throw erro;
         }
         dadosAtualizacao.telefone_responsavel = telefoneLimpo;
       }
 
+      // Validação de email se fornecido
       if (dadosAtualizacao.email_responsavel) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(dadosAtualizacao.email_responsavel)) {
-          logError('Email inválido', 'service', { email: dadosAtualizacao.email_responsavel });
-          return null;
+          const erro = new Error(`Email inválido: ${dadosAtualizacao.email_responsavel}`);
+          (erro as any).codigo = 'EMAIL_INVALIDO';
+          (erro as any).email = dadosAtualizacao.email_responsavel;
+          throw erro;
         }
         dadosAtualizacao.email_responsavel = dadosAtualizacao.email_responsavel.trim().toLowerCase();
       }
 
+      // Limpa campos de texto se fornecidos
+      if (dadosAtualizacao.nome_responsavel) {
+        dadosAtualizacao.nome_responsavel = dadosAtualizacao.nome_responsavel.trim();
+      }
+      if (dadosAtualizacao.sobrenome_responsavel) {
+        dadosAtualizacao.sobrenome_responsavel = dadosAtualizacao.sobrenome_responsavel.trim();
+      }
+      if (dadosAtualizacao.rg_responsavel) {
+        dadosAtualizacao.rg_responsavel = dadosAtualizacao.rg_responsavel.trim();
+      }
+      if (dadosAtualizacao.grau_instrucao_responsavel) {
+        dadosAtualizacao.grau_instrucao_responsavel = dadosAtualizacao.grau_instrucao_responsavel.trim();
+      }
+
       const responsavelAtualizado = await ResponsavelModel.atualizar(responsavel_id, dadosAtualizacao);
+      
+      if (!responsavelAtualizado) {
+        const erro = new Error(`Falha ao atualizar responsável com ID: ${responsavel_id}`);
+        (erro as any).codigo = 'FALHA_ATUALIZACAO';
+        (erro as any).responsavel_id = responsavel_id;
+        throw erro;
+      }
       
       logSuccess('Responsável atualizado com sucesso', 'service', { 
         responsavel_id,
-        nome: responsavelAtualizado ? `${responsavelAtualizado.nome_responsavel} ${responsavelAtualizado.sobrenome_responsavel}` : 'N/A'
+        nome: `${responsavelAtualizado.nome_responsavel} ${responsavelAtualizado.sobrenome_responsavel}`
       });
       
-      return responsavelAtualizado || null;
+      return responsavelAtualizado;
     } catch (error) {
       logError('Erro ao atualizar responsável', 'service', error);
       throw error;
