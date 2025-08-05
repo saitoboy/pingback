@@ -4,7 +4,7 @@ import { logError, logSuccess } from '../utils/logger';
 
 export class AlunoController {
   
-  async criarAluno(req: Request, res: Response) {
+  static async criarAluno(req: Request, res: Response) {
     try {
       const camposEsperados = [
         'nome_aluno', 'sobrenome_aluno', 'data_nascimento_aluno',
@@ -130,7 +130,7 @@ export class AlunoController {
     }
   }
 
-  async buscarAlunoPorId(req: Request, res: Response) {
+  static async buscarAlunoPorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -162,7 +162,7 @@ export class AlunoController {
     }
   }
 
-  async listarAlunos(req: Request, res: Response) {
+  static async listarAlunos(req: Request, res: Response) {
     try {
       const alunos = await AlunoService.listarTodos();
       
@@ -184,7 +184,7 @@ export class AlunoController {
     }
   }
 
-  async buscarAlunosPorNome(req: Request, res: Response) {
+  static async buscarAlunosPorNome(req: Request, res: Response) {
     try {
       const { termo } = req.query;
       
@@ -218,7 +218,7 @@ export class AlunoController {
   }
 
   // Manter método de listar por idade para funcionalidade extra
-  async listarAlunosPorIdade(req: Request, res: Response) {
+  static async listarAlunosPorIdade(req: Request, res: Response) {
     try {
       const { idade_minima, idade_maxima } = req.query;
       
@@ -255,7 +255,7 @@ export class AlunoController {
     }
   }
 
-  async atualizarAluno(req: Request, res: Response) {
+  static async atualizarAluno(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -300,7 +300,7 @@ export class AlunoController {
     }
   }
 
-  async removerAluno(req: Request, res: Response) {
+  static async removerAluno(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -334,7 +334,7 @@ export class AlunoController {
     }
   }
 
-  async buscarAlunoPorCpf(req: Request, res: Response) {
+  static async buscarAlunoPorCpf(req: Request, res: Response) {
     try {
       const { cpf } = req.params;
       
@@ -376,7 +376,7 @@ export class AlunoController {
     }
   }
 
-  async buscarAlunoPorMatricula(req: Request, res: Response) {
+  static async buscarAlunoPorMatricula(req: Request, res: Response) {
     try {
       const { numeroMatricula } = req.params;
       
@@ -408,7 +408,7 @@ export class AlunoController {
     }
   }
 
-  async obterEstatisticas(req: Request, res: Response) {
+  static async obterEstatisticas(req: Request, res: Response) {
     try {
       const estatisticas = await AlunoService.obterEstatisticas();
       

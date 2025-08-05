@@ -4,7 +4,7 @@ import { logError, logSuccess } from '../utils/logger';
 
 export class CertidaoController {
   
-  async criarCertidao(req: Request, res: Response) {
+  static async criarCertidao(req: Request, res: Response) {
     try {
       const camposEsperados = [
         'livro_certidao', 'matricula_certidao', 'termo_certidao',
@@ -91,7 +91,7 @@ export class CertidaoController {
     }
   }
 
-  async buscarCertidaoPorId(req: Request, res: Response) {
+  static async buscarCertidaoPorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -123,7 +123,7 @@ export class CertidaoController {
     }
   }
 
-  async listarCertidoes(req: Request, res: Response) {
+  static async listarCertidoes(req: Request, res: Response) {
     try {
       const certidoes = await CertidaoService.listarTodas();
       
@@ -145,7 +145,7 @@ export class CertidaoController {
     }
   }
 
-  async buscarCertidaoPorMatricula(req: Request, res: Response) {
+  static async buscarCertidaoPorMatricula(req: Request, res: Response) {
     try {
       const { matricula } = req.params;
       
@@ -177,7 +177,7 @@ export class CertidaoController {
     }
   }
 
-  async atualizarCertidao(req: Request, res: Response) {
+  static async atualizarCertidao(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -222,7 +222,7 @@ export class CertidaoController {
     }
   }
 
-  async removerCertidao(req: Request, res: Response) {
+  static async removerCertidao(req: Request, res: Response) {
     try {
       const { id } = req.params;
       

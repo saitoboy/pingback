@@ -4,7 +4,7 @@ import { logError, logSuccess } from '../utils/logger';
 
 export class ReligiaoController {
   
-  async criarReligiao(req: Request, res: Response) {
+  static async criarReligiao(req: Request, res: Response) {
     try {
       const { nome_religiao } = req.body;
       
@@ -58,7 +58,7 @@ export class ReligiaoController {
     }
   }
 
-  async buscarReligiaoPorId(req: Request, res: Response) {
+  static async buscarReligiaoPorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -90,7 +90,7 @@ export class ReligiaoController {
     }
   }
 
-  async listarReligioes(req: Request, res: Response) {
+  static async listarReligioes(req: Request, res: Response) {
     try {
       const religioes = await ReligiaoService.listarTodas();
       
@@ -112,7 +112,7 @@ export class ReligiaoController {
     }
   }
 
-  async atualizarReligiao(req: Request, res: Response) {
+  static async atualizarReligiao(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -157,7 +157,7 @@ export class ReligiaoController {
     }
   }
 
-  async removerReligiao(req: Request, res: Response) {
+  static async removerReligiao(req: Request, res: Response) {
     try {
       const { id } = req.params;
       

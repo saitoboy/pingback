@@ -10,6 +10,8 @@ import professorRoutes from './routes/professor.routes';
 import alunoRoutes from './routes/aluno.routes';
 import religiaoRoutes from './routes/religiao.routes';
 import certidaoRoutes from './routes/certidao.routes';
+import parentescoRoutes from './routes/parentesco.routes';
+import responsavelRoutes from './routes/responsavel.routes';
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use('/professor', professorRoutes);
 app.use('/aluno', alunoRoutes);
 app.use('/religiao', religiaoRoutes);
 app.use('/certidao', certidaoRoutes);
+app.use('/parentesco', parentescoRoutes);
+app.use('/responsavel', responsavelRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
