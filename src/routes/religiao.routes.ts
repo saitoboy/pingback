@@ -12,9 +12,9 @@ router.use(autenticar);
 router.get('/', ReligiaoController.listarReligioes);
 router.get('/:id', ReligiaoController.buscarReligiaoPorId);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), ReligiaoController.criarReligiao);
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN]), ReligiaoController.atualizarReligiao);
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), ReligiaoController.removerReligiao);
+// Rotas que precisam de permissão de ADMIN ou SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ReligiaoController.criarReligiao);
+router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ReligiaoController.atualizarReligiao);
+router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ReligiaoController.removerReligiao);
 
 export default router;

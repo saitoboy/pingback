@@ -13,9 +13,9 @@ router.get('/', CertidaoController.listarCertidoes);
 router.get('/:id', CertidaoController.buscarCertidaoPorId);
 router.get('/matricula/:matricula', CertidaoController.buscarCertidaoPorMatricula);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), CertidaoController.criarCertidao);
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN]), CertidaoController.atualizarCertidao);
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), CertidaoController.removerCertidao);
+// Rotas que precisam de permissão de ADMIN ou SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), CertidaoController.criarCertidao);
+router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), CertidaoController.atualizarCertidao);
+router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), CertidaoController.removerCertidao);
 
 export default router;

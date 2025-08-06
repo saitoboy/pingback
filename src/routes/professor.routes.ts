@@ -11,10 +11,10 @@ router.use(autenticar);
 // Rota para professor buscar seu próprio perfil
 router.get('/me', ProfessorController.buscarMeuPerfil);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), ProfessorController.criar);
-router.get('/', autorizarPor([TipoUsuario.ADMIN]), ProfessorController.listar);
-router.get('/:professor_id', autorizarPor([TipoUsuario.ADMIN]), ProfessorController.buscarPorId);
-router.delete('/:professor_id', autorizarPor([TipoUsuario.ADMIN]), ProfessorController.deletar);
+// Rotas que precisam de permissão de ADMIN ou SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.criar);
+router.get('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.listar);
+router.get('/:professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.buscarPorId);
+router.delete('/:professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.deletar);
 
 export default router;

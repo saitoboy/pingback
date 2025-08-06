@@ -16,9 +16,9 @@ router.get('/matricula/:numeroMatricula', AlunoController.buscarAlunoPorMatricul
 router.get('/buscar/nome', AlunoController.buscarAlunosPorNome);
 router.get('/estatisticas/geral', AlunoController.obterEstatisticas);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), AlunoController.criarAluno);
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN]), AlunoController.atualizarAluno);
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), AlunoController.removerAluno);
+// Rotas que precisam de permissão de ADMIN E SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.criarAluno);
+router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.atualizarAluno);
+router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.removerAluno);
 
 export default router;

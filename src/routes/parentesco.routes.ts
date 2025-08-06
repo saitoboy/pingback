@@ -12,9 +12,9 @@ router.use(autenticar);
 router.get('/', ParentescoController.listarParentescos);
 router.get('/:id', ParentescoController.buscarParentescoPorId);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), ParentescoController.criarParentesco);
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN]), ParentescoController.atualizarParentesco);
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), ParentescoController.removerParentesco);
+// Rotas que precisam de permissão de ADMIN ou SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ParentescoController.criarParentesco);
+router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ParentescoController.atualizarParentesco);
+router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ParentescoController.removerParentesco);
 
 export default router;

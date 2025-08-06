@@ -12,6 +12,7 @@ import religiaoRoutes from './routes/religiao.routes';
 import certidaoRoutes from './routes/certidao.routes';
 import parentescoRoutes from './routes/parentesco.routes';
 import responsavelRoutes from './routes/responsavel.routes';
+import dadosSaudeRoutes from './routes/dadosSaude.routes';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/religiao', religiaoRoutes);
 app.use('/certidao', certidaoRoutes);
 app.use('/parentesco', parentescoRoutes);
 app.use('/responsavel', responsavelRoutes);
+app.use('/dados-saude', dadosSaudeRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {

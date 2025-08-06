@@ -14,9 +14,9 @@ router.get('/:id', ResponsavelController.buscarResponsavelPorId);
 router.get('/aluno/:aluno_id', ResponsavelController.listarResponsaveisPorAluno);
 router.get('/cpf/:cpf', ResponsavelController.buscarResponsavelPorCpf);
 
-// Rotas que precisam de permissão de ADMIN
-router.post('/', autorizarPor([TipoUsuario.ADMIN]), ResponsavelController.criarResponsavel);
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN]), ResponsavelController.atualizarResponsavel);
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), ResponsavelController.deletarResponsavel);
+// Rotas que precisam de permissão de ADMIN ou SECRETARIO
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ResponsavelController.criarResponsavel);
+router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ResponsavelController.atualizarResponsavel);
+router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ResponsavelController.deletarResponsavel);
 
 export default router;

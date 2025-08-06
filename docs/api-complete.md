@@ -10,6 +10,7 @@
 - [Religião](#religião)
 - [Certidão](#certidão)
 - [Códigos de Status](#códigos-de-status)
+- [Dados de Saúde](#dados-de-saúde)
 
 ---
 
@@ -1108,5 +1109,359 @@ Authorization: Bearer <token-jwt>
   "codigo_erro": "EMAIL_INVALIDO",
   "email_recebido": "email-invalido",
   "dica": "Use formato válido como: nome@dominio.com"
+}
+```
+
+---
+
+## 🏥 Dados de Saúde
+
+### POST `/dados-saude`
+**Descrição:** Criar novos dados de saúde para um aluno
+**Autenticação:** Bearer Token requerido
+**Permissão:** Apenas ADMIN
+
+**Request Body:**
+```json
+{
+  "aluno_id": "uuid-do-aluno",
+  "necessidades_especiais": "Cadeirante",
+  "vacinas_em_dia": true,
+  "dorme_bem": true,
+  "alimenta_se_bem": true,
+  "uso_sanitario_sozinho": false,
+  "restricao_alimentar": "Alergia a glúten",
+  "problema_saude": "Asma",
+  "alergia_medicamento": "Penicilina",
+  "uso_continuo_medicamento": "Bombinha para asma",
+  "alergias": "Pó, pólen",
+  "medicacao_febre": "Paracetamol",
+  "medicacao_dor_cabeca": "Paracetamol",
+  "medicacao_dor_barriga": "Buscopan",
+  "historico_convulsao": false,
+  "perda_esfincter_emocional": false,
+  "frequentou_outra_escola": true,
+  "tipo_parto": "Normal",
+  "gravidez_tranquila": true,
+  "medicacao_gravidez": "",
+  "tem_irmaos": true,
+  "fonoaudiologico": false,
+  "psicopedagogico": false,
+  "neurologico": false,
+  "outro_tratamento": "",
+  "motivo_tratamento": "",
+  "observacoes": "Criança muito ativa e sociável"
+}
+```
+
+**Response 201 (Dados de saúde criados):**
+```json
+{
+  "success": "✅ Dados de saúde criados com sucesso",
+  "data": {
+    "dados_saude_id": "uuid-dos-dados-saude",
+    "aluno_id": "uuid-do-aluno",
+    "necessidades_especiais": "Cadeirante",
+    "vacinas_em_dia": true,
+    "dorme_bem": true,
+    "alimenta_se_bem": true,
+    "uso_sanitario_sozinho": false,
+    "restricao_alimentar": "Alergia a glúten",
+    "problema_saude": "Asma",
+    "alergia_medicamento": "Penicilina",
+    "uso_continuo_medicamento": "Bombinha para asma",
+    "alergias": "Pó, pólen",
+    "medicacao_febre": "Paracetamol",
+    "medicacao_dor_cabeca": "Paracetamol",
+    "medicacao_dor_barriga": "Buscopan",
+    "historico_convulsao": false,
+    "perda_esfincter_emocional": false,
+    "frequentou_outra_escola": true,
+    "tipo_parto": "Normal",
+    "gravidez_tranquila": true,
+    "medicacao_gravidez": "",
+    "tem_irmaos": true,
+    "fonoaudiologico": false,
+    "psicopedagogico": false,
+    "neurologico": false,
+    "outro_tratamento": "",
+    "motivo_tratamento": "",
+    "observacoes": "Criança muito ativa e sociável",
+    "created_at": "2025-08-06T10:30:00Z",
+    "updated_at": "2025-08-06T10:30:00Z"
+  }
+}
+```
+
+**Response 400 (Campos obrigatórios):**
+```json
+{
+  "error": "❌ Dados incompletos",
+  "message": "Os seguintes campos são obrigatórios: aluno_id, vacinas_em_dia, dorme_bem",
+  "codigo_erro": "CAMPOS_OBRIGATORIOS",
+  "dados_faltando": ["aluno_id", "vacinas_em_dia", "dorme_bem"]
+}
+```
+
+**Response 400 (Campo muito longo):**
+```json
+{
+  "error": "❌ Campo muito longo",
+  "message": "Campo 'observacoes' deve ter no máximo 500 caracteres",
+  "codigo_erro": "CAMPO_MUITO_LONGO",
+  "campo_problematico": "observacoes",
+  "tamanho_atual": 650,
+  "tamanho_maximo": 500,
+  "dica": "Reduza o texto ou use observações para informações extras"
+}
+```
+
+**Response 400 (Tipo de parto inválido):**
+```json
+{
+  "error": "❌ Tipo de parto inválido",
+  "message": "Tipo de parto deve ser um dos valores: Normal, Cesárea, Fórceps, Induzido, Outro",
+  "codigo_erro": "TIPO_PARTO_INVALIDO",
+  "tipo_parto_recebido": "Waterbirth",
+  "tipos_validos": ["Normal", "Cesárea", "Fórceps", "Induzido", "Outro"],
+  "dica": "Use um dos tipos listados ou deixe em branco"
+}
+```
+
+**Response 404 (Aluno não encontrado):**
+```json
+{
+  "error": "❌ Aluno não encontrado",
+  "message": "Não foi encontrado nenhum aluno com o ID: uuid-inexistente",
+  "codigo_erro": "ALUNO_NAO_ENCONTRADO",
+  "aluno_id_fornecido": "uuid-inexistente",
+  "dica": "Verifique se o aluno_id está correto ou se o aluno existe no sistema"
+}
+```
+
+**Response 409 (Dados já cadastrados):**
+```json
+{
+  "error": "❌ Dados de saúde já cadastrados",
+  "message": "Já existem dados de saúde cadastrados para este aluno",
+  "codigo_erro": "DADOS_SAUDE_DUPLICADOS",
+  "aluno_id": "uuid-do-aluno",
+  "dados_saude_existente_id": "uuid-existente",
+  "dica": "Use PUT para atualizar os dados existentes ou DELETE para remover e criar novos"
+}
+```
+
+---
+
+### GET `/dados-saude`
+**Descrição:** Listar todos os dados de saúde
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "success": "✅ Lista de dados de saúde obtida com sucesso",
+  "total": 1,
+  "data": [
+    {
+      "dados_saude_id": "uuid-dos-dados-saude",
+      "aluno_id": "uuid-do-aluno",
+      "nome_aluno": "Maria Silva",
+      "sobrenome_aluno": "Santos",
+      "numero_matricula_aluno": "2025001",
+      "necessidades_especiais": "Cadeirante",
+      "vacinas_em_dia": true,
+      "problema_saude": "Asma",
+      "restricao_alimentar": "Alergia a glúten",
+      "observacoes": "Criança muito ativa e sociável",
+      "created_at": "2025-08-06T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/dados-saude/:id`
+**Descrição:** Buscar dados de saúde por ID
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "success": "✅ Dados de saúde encontrados",
+  "data": {
+    "dados_saude_id": "uuid-dos-dados-saude",
+    "aluno_id": "uuid-do-aluno",
+    "nome_aluno": "Maria Silva",
+    "sobrenome_aluno": "Santos",
+    "numero_matricula_aluno": "2025001",
+    "data_nascimento_aluno": "2015-03-15",
+    "necessidades_especiais": "Cadeirante",
+    "vacinas_em_dia": true,
+    "dorme_bem": true,
+    "alimenta_se_bem": true,
+    "uso_sanitario_sozinho": false,
+    "restricao_alimentar": "Alergia a glúten",
+    "problema_saude": "Asma",
+    "alergia_medicamento": "Penicilina",
+    "uso_continuo_medicamento": "Bombinha para asma",
+    "alergias": "Pó, pólen",
+    "medicacao_febre": "Paracetamol",
+    "medicacao_dor_cabeca": "Paracetamol",
+    "medicacao_dor_barriga": "Buscopan",
+    "historico_convulsao": false,
+    "perda_esfincter_emocional": false,
+    "frequentou_outra_escola": true,
+    "tipo_parto": "Normal",
+    "gravidez_tranquila": true,
+    "medicacao_gravidez": "",
+    "tem_irmaos": true,
+    "fonoaudiologico": false,
+    "psicopedagogico": false,
+    "neurologico": false,
+    "outro_tratamento": "",
+    "motivo_tratamento": "",
+    "observacoes": "Criança muito ativa e sociável",
+    "created_at": "2025-08-06T10:30:00Z",
+    "updated_at": "2025-08-06T10:30:00Z"
+  }
+}
+```
+
+**Response 404 (Dados não encontrados):**
+```json
+{
+  "error": "❌ Dados de saúde não encontrados",
+  "message": "Nenhum registro de dados de saúde foi encontrado com este ID",
+  "codigo_erro": "DADOS_SAUDE_NAO_ENCONTRADOS",
+  "dados_saude_id_fornecido": "uuid-inexistente"
+}
+```
+
+---
+
+### GET `/dados-saude/aluno/:aluno_id`
+**Descrição:** Buscar dados de saúde de um aluno específico
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "success": "✅ Dados de saúde do aluno encontrados",
+  "data": {
+    "dados_saude_id": "uuid-dos-dados-saude",
+    "aluno_id": "uuid-do-aluno",
+    "nome_aluno": "Maria Silva",
+    "sobrenome_aluno": "Santos",
+    "numero_matricula_aluno": "2025001",
+    "data_nascimento_aluno": "2015-03-15",
+    "necessidades_especiais": "Cadeirante",
+    "vacinas_em_dia": true,
+    "problema_saude": "Asma",
+    "restricao_alimentar": "Alergia a glúten",
+    "observacoes": "Criança muito ativa e sociável"
+  }
+}
+```
+
+**Response 404 (Aluno não encontrado):**
+```json
+{
+  "error": "❌ Aluno não encontrado",
+  "message": "Não foi encontrado nenhum aluno com o ID: uuid-inexistente",
+  "codigo_erro": "ALUNO_NAO_ENCONTRADO",
+  "aluno_id_fornecido": "uuid-inexistente"
+}
+```
+
+**Response 404 (Dados não encontrados para o aluno):**
+```json
+{
+  "error": "❌ Dados de saúde não encontrados",
+  "message": "Nenhum registro de dados de saúde foi encontrado para este aluno",
+  "codigo_erro": "DADOS_SAUDE_NAO_ENCONTRADOS_ALUNO",
+  "aluno_id_fornecido": "uuid-do-aluno"
+}
+```
+
+---
+
+### PUT `/dados-saude/:id`
+**Descrição:** Atualizar dados de saúde
+**Autenticação:** Bearer Token requerido
+**Permissão:** Apenas ADMIN
+
+**Request Body (campos opcionais):**
+```json
+{
+  "necessidades_especiais": "Cadeirante com prótese",
+  "problema_saude": "Asma controlada",
+  "medicacao_febre": "Dipirona",
+  "observacoes": "Melhora significativa na adaptação escolar"
+}
+```
+
+**Response 200 (Atualizado com sucesso):**
+```json
+{
+  "success": "✅ Dados de saúde atualizados com sucesso",
+  "data": {
+    "dados_saude_id": "uuid-dos-dados-saude",
+    "aluno_id": "uuid-do-aluno",
+    "necessidades_especiais": "Cadeirante com prótese",
+    "problema_saude": "Asma controlada",
+    "medicacao_febre": "Dipirona",
+    "observacoes": "Melhora significativa na adaptação escolar",
+    "updated_at": "2025-08-06T11:30:00Z"
+  }
+}
+```
+
+**Response 400 (Nenhum campo fornecido):**
+```json
+{
+  "error": "❌ Dados incompletos",
+  "message": "Pelo menos um campo deve ser fornecido para atualização",
+  "codigo_erro": "NENHUM_CAMPO_PARA_ATUALIZAR"
+}
+```
+
+**Response 404 (Dados não encontrados):**
+```json
+{
+  "error": "❌ Dados de saúde não encontrados",
+  "message": "Não foi possível encontrar os dados de saúde para atualizar",
+  "codigo_erro": "DADOS_SAUDE_NAO_ENCONTRADOS",
+  "dados_saude_id_fornecido": "uuid-inexistente"
+}
+```
+
+---
+
+### DELETE `/dados-saude/:id`
+**Descrição:** Remover dados de saúde do sistema
+**Autenticação:** Bearer Token requerido
+**Permissão:** Apenas ADMIN
+
+**Response 200 (Deletado com sucesso):**
+```json
+{
+  "success": "✅ Dados de saúde deletados com sucesso",
+  "message": "Os dados de saúde foram removidos do sistema",
+  "dados_saude_id_deletado": "uuid-dos-dados-saude"
+}
+```
+
+**Response 404 (Dados não encontrados):**
+```json
+{
+  "error": "❌ Dados de saúde não encontrados",
+  "message": "Nenhum registro de dados de saúde foi encontrado com este ID para deletar",
+  "codigo_erro": "DADOS_SAUDE_NAO_ENCONTRADOS",
+  "dados_saude_id_fornecido": "uuid-inexistente"
 }
 ```

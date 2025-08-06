@@ -116,6 +116,8 @@ export interface DadosSaude {
   outro_tratamento: string;
   motivo_tratamento: string;
   observacoes: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Diagnostico {
