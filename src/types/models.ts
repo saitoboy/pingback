@@ -146,6 +146,7 @@ export interface AnoLetivo {
   ano: number;
   data_inicio: Date;
   data_fim: Date;
+  ativo: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -153,6 +154,8 @@ export interface AnoLetivo {
 export interface Serie {
   serie_id: string;
   nome_serie: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Turma {
@@ -162,6 +165,8 @@ export interface Turma {
   nome_turma: string;
   turno: string;
   sala: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface MatriculaAluno {
@@ -202,8 +207,10 @@ export interface ConteudoAula {
 
 export interface PeriodoLetivo {
   periodo_letivo_id: string;
-  nome_periodo: string;
-  ordem: number;
+  bimestre: number;
+  ano_letivo_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Atividade {

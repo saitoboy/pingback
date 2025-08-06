@@ -15,6 +15,9 @@ import responsavelRoutes from './routes/responsavel.routes';
 import dadosSaudeRoutes from './routes/dadosSaude.routes';
 import diagnosticoRoutes from './routes/diagnostico.routes';
 import anoLetivoRoutes from './routes/anoLetivo.routes';
+import periodoLetivoRoutes from './routes/periodoLetivo.routes';
+import serieRoutes from './routes/serie.routes';
+import turmaRoutes from './routes/turma.routes';
 
 const app = express();
 
@@ -31,6 +34,9 @@ app.use('/responsavel', responsavelRoutes);
 app.use('/dados-saude', dadosSaudeRoutes);
 app.use('/diagnostico', diagnosticoRoutes);
 app.use('/ano-letivo', anoLetivoRoutes);
+app.use('/periodo-letivo', periodoLetivoRoutes);
+app.use('/serie', serieRoutes);
+app.use('/turma', turmaRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
