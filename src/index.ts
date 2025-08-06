@@ -13,6 +13,8 @@ import certidaoRoutes from './routes/certidao.routes';
 import parentescoRoutes from './routes/parentesco.routes';
 import responsavelRoutes from './routes/responsavel.routes';
 import dadosSaudeRoutes from './routes/dadosSaude.routes';
+import diagnosticoRoutes from './routes/diagnostico.routes';
+import anoLetivoRoutes from './routes/anoLetivo.routes';
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use('/certidao', certidaoRoutes);
 app.use('/parentesco', parentescoRoutes);
 app.use('/responsavel', responsavelRoutes);
 app.use('/dados-saude', dadosSaudeRoutes);
+app.use('/diagnostico', diagnosticoRoutes);
+app.use('/ano-letivo', anoLetivoRoutes);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {

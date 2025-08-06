@@ -137,6 +137,8 @@ export interface Diagnostico {
   alteracoes_processamento_auditivo: boolean;
   tdah: boolean;
   outros_diagnosticos: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface AnoLetivo {
@@ -144,6 +146,8 @@ export interface AnoLetivo {
   ano: number;
   data_inicio: Date;
   data_fim: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Serie {

@@ -11,6 +11,7 @@
 - [Certidão](#certidão)
 - [Códigos de Status](#códigos-de-status)
 - [Dados de Saúde](#dados-de-saúde)
+- [Diagnóstico](#diagnóstico)
 
 ---
 
@@ -1463,5 +1464,309 @@ Authorization: Bearer <token-jwt>
   "message": "Nenhum registro de dados de saúde foi encontrado com este ID para deletar",
   "codigo_erro": "DADOS_SAUDE_NAO_ENCONTRADOS",
   "dados_saude_id_fornecido": "uuid-inexistente"
+}
+```
+
+---
+
+## 🧠 Diagnóstico
+
+### POST `/diagnostico`
+**Descrição:** Criar novo diagnóstico para um aluno
+**Autenticação:** Bearer Token requerido
+**Permissão:** ADMIN, SECRETARIO
+
+**Request Body:**
+```json
+{
+  "aluno_id": "uuid-do-aluno",
+  "cegueira": false,
+  "baixa_visao": false,
+  "surdez": false,
+  "deficiencia_auditiva": false,
+  "surdocegueira": false,
+  "deficiencia_fisica": false,
+  "deficiencia_multipla": false,
+  "deficiencia_intelectual": false,
+  "sindrome_down": false,
+  "altas_habilidades": false,
+  "tea": false,
+  "alteracoes_processamento_auditivo": false,
+  "tdah": false,
+  "outros_diagnosticos": "Dislexia leve"
+}
+```
+
+**Response 201 (Criado com sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Diagnóstico criado com sucesso",
+  "dados": {
+    "diagnostico_id": "uuid-do-diagnostico",
+    "aluno_id": "uuid-do-aluno",
+    "cegueira": false,
+    "baixa_visao": false,
+    "surdez": false,
+    "deficiencia_auditiva": false,
+    "surdocegueira": false,
+    "deficiencia_fisica": false,
+    "deficiencia_multipla": false,
+    "deficiencia_intelectual": false,
+    "sindrome_down": false,
+    "altas_habilidades": false,
+    "tea": false,
+    "alteracoes_processamento_auditivo": false,
+    "tdah": false,
+    "outros_diagnosticos": "Dislexia leve",
+    "created_at": "2025-08-06T19:30:00.000Z",
+    "updated_at": "2025-08-06T19:30:00.000Z"
+  }
+}
+```
+
+**Response 400 (Campo obrigatório ausente):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Campo obrigatório: aluno_id",
+  "erro": {
+    "codigo": "CAMPO_OBRIGATORIO",
+    "campo": "aluno_id",
+    "detalhes": "Este campo é obrigatório e deve ser fornecido"
+  }
+}
+```
+
+**Response 409 (Diagnóstico já existe):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Já existe diagnóstico para este aluno",
+  "erro": {
+    "codigo": "DIAGNOSTICO_DUPLICADO",
+    "aluno_id": "uuid-do-aluno",
+    "diagnostico_existente_id": "uuid-do-diagnostico-existente",
+    "detalhes": "Cada aluno pode ter apenas um diagnóstico. Use PUT para atualizar."
+  }
+}
+```
+
+---
+
+### GET `/diagnostico`
+**Descrição:** Listar todos os diagnósticos
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Lista de diagnósticos obtida com sucesso",
+  "dados": [
+    {
+      "diagnostico_id": "uuid-do-diagnostico-1",
+      "aluno_id": "uuid-do-aluno-1",
+      "cegueira": false,
+      "baixa_visao": true,
+      "surdez": false,
+      "deficiencia_auditiva": false,
+      "surdocegueira": false,
+      "deficiencia_fisica": false,
+      "deficiencia_multipla": false,
+      "deficiencia_intelectual": false,
+      "sindrome_down": false,
+      "altas_habilidades": false,
+      "tea": false,
+      "alteracoes_processamento_auditivo": false,
+      "tdah": false,
+      "outros_diagnosticos": "",
+      "created_at": "2025-08-06T19:30:00.000Z",
+      "updated_at": "2025-08-06T19:30:00.000Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+### GET `/diagnostico/:diagnostico_id`
+**Descrição:** Buscar diagnóstico por ID
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Diagnóstico encontrado",
+  "dados": {
+    "diagnostico_id": "uuid-do-diagnostico",
+    "aluno_id": "uuid-do-aluno",
+    "cegueira": false,
+    "baixa_visao": true,
+    "surdez": false,
+    "deficiencia_auditiva": false,
+    "surdocegueira": false,
+    "deficiencia_fisica": false,
+    "deficiencia_multipla": false,
+    "deficiencia_intelectual": false,
+    "sindrome_down": false,
+    "altas_habilidades": false,
+    "tea": false,
+    "alteracoes_processamento_auditivo": false,
+    "tdah": false,
+    "outros_diagnosticos": "Dislexia leve",
+    "created_at": "2025-08-06T19:30:00.000Z",
+    "updated_at": "2025-08-06T19:30:00.000Z"
+  }
+}
+```
+
+**Response 404 (Não encontrado):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Diagnóstico não encontrado",
+  "erro": {
+    "codigo": "DIAGNOSTICO_NAO_ENCONTRADO",
+    "diagnostico_id": "uuid-inexistente",
+    "detalhes": "O diagnóstico especificado não existe"
+  }
+}
+```
+
+---
+
+### GET `/diagnostico/aluno/:aluno_id`
+**Descrição:** Buscar diagnóstico de um aluno específico
+**Autenticação:** Bearer Token requerido
+**Permissão:** Qualquer usuário autenticado
+
+**Response 200 (Sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Diagnóstico encontrado para o aluno",
+  "dados": {
+    "diagnostico_id": "uuid-do-diagnostico",
+    "aluno_id": "uuid-do-aluno",
+    "cegueira": false,
+    "baixa_visao": false,
+    "surdez": false,
+    "deficiencia_auditiva": false,
+    "surdocegueira": false,
+    "deficiencia_fisica": false,
+    "deficiencia_multipla": false,
+    "deficiencia_intelectual": false,
+    "sindrome_down": false,
+    "altas_habilidades": true,
+    "tea": false,
+    "alteracoes_processamento_auditivo": false,
+    "tdah": false,
+    "outros_diagnosticos": "Superdotação em matemática",
+    "created_at": "2025-08-06T19:30:00.000Z",
+    "updated_at": "2025-08-06T19:30:00.000Z"
+  }
+}
+```
+
+**Response 404 (Não encontrado):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Diagnóstico não encontrado para este aluno",
+  "erro": {
+    "codigo": "DIAGNOSTICO_NAO_ENCONTRADO",
+    "aluno_id": "uuid-do-aluno",
+    "detalhes": "Este aluno não possui diagnóstico cadastrado"
+  }
+}
+```
+
+---
+
+### PUT `/diagnostico/:diagnostico_id`
+**Descrição:** Atualizar diagnóstico existente
+**Autenticação:** Bearer Token requerido
+**Permissão:** ADMIN, SECRETARIO
+
+**Request Body (parcial):**
+```json
+{
+  "tea": true,
+  "tdah": true,
+  "outros_diagnosticos": "TEA nível 1 e TDAH combinado"
+}
+```
+
+**Response 200 (Atualizado com sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Diagnóstico atualizado com sucesso",
+  "dados": {
+    "diagnostico_id": "uuid-do-diagnostico",
+    "aluno_id": "uuid-do-aluno",
+    "cegueira": false,
+    "baixa_visao": false,
+    "surdez": false,
+    "deficiencia_auditiva": false,
+    "surdocegueira": false,
+    "deficiencia_fisica": false,
+    "deficiencia_multipla": false,
+    "deficiencia_intelectual": false,
+    "sindrome_down": false,
+    "altas_habilidades": false,
+    "tea": true,
+    "alteracoes_processamento_auditivo": false,
+    "tdah": true,
+    "outros_diagnosticos": "TEA nível 1 e TDAH combinado",
+    "created_at": "2025-08-06T19:30:00.000Z",
+    "updated_at": "2025-08-06T19:35:00.000Z"
+  }
+}
+```
+
+**Response 404 (Não encontrado):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Diagnóstico não encontrado",
+  "erro": {
+    "codigo": "DIAGNOSTICO_NAO_ENCONTRADO",
+    "diagnostico_id": "uuid-inexistente",
+    "detalhes": "O diagnóstico especificado não existe"
+  }
+}
+```
+
+---
+
+### DELETE `/diagnostico/:diagnostico_id`
+**Descrição:** Deletar diagnóstico
+**Autenticação:** Bearer Token requerido
+**Permissão:** ADMIN, SECRETARIO
+
+**Response 200 (Deletado com sucesso):**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Diagnóstico deletado com sucesso"
+}
+```
+
+**Response 404 (Não encontrado):**
+```json
+{
+  "sucesso": false,
+  "mensagem": "Diagnóstico não encontrado",
+  "erro": {
+    "codigo": "DIAGNOSTICO_NAO_ENCONTRADO",
+    "diagnostico_id": "uuid-inexistente",
+    "detalhes": "O diagnóstico especificado não existe"
+  }
 }
 ```
