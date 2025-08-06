@@ -108,11 +108,44 @@ export class DadosSaudeController {
         }
       }
 
+      // Tratar erros específicos do banco de dados
+      if (error.code === '42703') {
+        return res.status(500).json({
+          error: '❌ Erro de estrutura do banco',
+          message: `Coluna não existe na tabela dados_saude: ${error.message}`,
+          codigo_erro: 'COLUNA_NAO_EXISTE',
+          detalhes_erro: {
+            codigo_banco: error.code,
+            posicao: error.position,
+            arquivo: error.file,
+            linha: error.line,
+            rotina: error.routine,
+            mensagem_completa: error.message
+          },
+          dica: 'Verifique se todas as colunas existem na tabela dados_saude'
+        });
+      }
+
+      if (error.code === '23503') {
+        return res.status(400).json({
+          error: '❌ Referência inválida',
+          message: 'ID de aluno não existe ou é inválido',
+          codigo_erro: 'FK_CONSTRAINT_VIOLATION',
+          detalhes_erro: error.message
+        });
+      }
+
       // Erro genérico
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao criar os dados de saúde',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: error.message,
+          stack: error.stack,
+          code: error.code,
+          name: error.name
+        }
       });
     }
   }
@@ -158,7 +191,12 @@ export class DadosSaudeController {
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao buscar os dados de saúde',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: (error as any).message,
+          code: (error as any).code,
+          name: (error as any).name
+        }
       });
     }
   }
@@ -214,7 +252,12 @@ export class DadosSaudeController {
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao buscar os dados de saúde do aluno',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: error.message,
+          code: error.code,
+          name: error.name
+        }
       });
     }
   }
@@ -238,7 +281,12 @@ export class DadosSaudeController {
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao listar os dados de saúde',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: (error as any).message,
+          code: (error as any).code,
+          name: (error as any).name
+        }
       });
     }
   }
@@ -331,7 +379,12 @@ export class DadosSaudeController {
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao atualizar os dados de saúde',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: error.message,
+          code: error.code,
+          name: error.name
+        }
       });
     }
   }
@@ -375,7 +428,12 @@ export class DadosSaudeController {
       return res.status(500).json({
         error: '❌ Erro interno do servidor',
         message: 'Ocorreu um erro inesperado ao deletar os dados de saúde',
-        codigo_erro: 'ERRO_INTERNO'
+        codigo_erro: 'ERRO_INTERNO',
+        detalhes_erro: {
+          message: (error as any).message,
+          code: (error as any).code,
+          name: (error as any).name
+        }
       });
     }
   }

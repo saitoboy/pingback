@@ -4,7 +4,17 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsnd src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "knex migrate:latest --verbose",
+    "migrate:rollback": "knex migrate:rollback",
+    "migrate:status": "knex migrate:status",
+    "migrate:up": "knex migrate:up",
+    "migrate:down": "knex migrate:down",
+    "migrate:check": "knex migrate:status && echo '\n✅ Verificação de migrações concluída!'",
+    "migrate:fresh": "knex migrate:rollback --all && knex migrate:latest --verbose",
+    "make:migration": "knex migrate:make",
+    "db:setup": "node scripts/setup-db.js",
+    "db:reset": "knex migrate:rollback --all && npm run db:setup"
   },
   "keywords": [],
   "author": "",
