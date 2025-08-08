@@ -175,8 +175,11 @@ export interface MatriculaAluno {
   turma_id: string;
   ano_letivo_id: string;
   data_matricula: Date;
-  data_saida: Date;
-  motivo_saida: string;
+  data_saida?: Date;
+  motivo_saida?: string;
+  status: 'ativo' | 'transferido' | 'concluido' | 'cancelado';
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Disciplina {

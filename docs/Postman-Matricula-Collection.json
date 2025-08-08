@@ -1,0 +1,346 @@
+{
+  "info": {
+    "name": "Sistema Escolar Pinguinho - Matrícula de Aluno",
+    "description": "Coleção completa para testar os endpoints de matrícula de aluno",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3003"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "aluno_id",
+      "value": ""
+    },
+    {
+      "key": "turma_id",
+      "value": ""
+    },
+    {
+      "key": "ano_letivo_id",
+      "value": ""
+    },
+    {
+      "key": "matricula_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Fazer Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('auth_token', response.token);",
+              "    console.log('Token salvo:', response.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email_usuario\": \"admin@escola.com\",\n  \"senha_usuario\": \"sua-senha-aqui\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "1. Listar Alunos (para obter IDs)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.dados && response.dados.length > 0) {",
+              "        pm.collectionVariables.set('aluno_id', response.dados[0].aluno_id);",
+              "        console.log('Aluno ID salvo:', response.dados[0].aluno_id);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/aluno",
+          "host": ["{{base_url}}"],
+          "path": ["aluno"]
+        }
+      }
+    },
+    {
+      "name": "2. Listar Turmas (para obter IDs)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.dados && response.dados.length > 0) {",
+              "        pm.collectionVariables.set('turma_id', response.dados[0].turma_id);",
+              "        console.log('Turma ID salvo:', response.dados[0].turma_id);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/turma",
+          "host": ["{{base_url}}"],
+          "path": ["turma"]
+        }
+      }
+    },
+    {
+      "name": "3. Listar Anos Letivos (para obter IDs)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.dados && response.dados.length > 0) {",
+              "        pm.collectionVariables.set('ano_letivo_id', response.dados[0].ano_letivo_id);",
+              "        console.log('Ano Letivo ID salvo:', response.dados[0].ano_letivo_id);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ano-letivo",
+          "host": ["{{base_url}}"],
+          "path": ["ano-letivo"]
+        }
+      }
+    },
+    {
+      "name": "4. Criar Matrícula",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('matricula_id', response.dados.matricula_aluno_id);",
+              "    console.log('Matrícula criada:', response.dados.matricula_aluno_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"aluno_id\": \"{{aluno_id}}\",\n  \"turma_id\": \"{{turma_id}}\",\n  \"ano_letivo_id\": \"{{ano_letivo_id}}\",\n  \"data_matricula\": \"2025-08-08\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno"]
+        }
+      }
+    },
+    {
+      "name": "5. Listar Todas as Matrículas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno"]
+        }
+      }
+    },
+    {
+      "name": "6. Buscar Matrícula por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/{{matricula_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "{{matricula_id}}"]
+        }
+      }
+    },
+    {
+      "name": "7. Buscar Matrículas por Aluno",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/aluno/{{aluno_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "aluno", "{{aluno_id}}"]
+        }
+      }
+    },
+    {
+      "name": "8. Buscar Matrículas por Turma",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/turma/{{turma_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "turma", "{{turma_id}}"]
+        }
+      }
+    },
+    {
+      "name": "9. Buscar Matrículas por Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/status/ativo",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "status", "ativo"]
+        }
+      }
+    },
+    {
+      "name": "10. Buscar Matrícula Ativa do Aluno",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/ativa/{{aluno_id}}/{{ano_letivo_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "ativa", "{{aluno_id}}", "{{ano_letivo_id}}"]
+        }
+      }
+    },
+    {
+      "name": "11. Atualizar Matrícula",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ativo\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/{{matricula_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "{{matricula_id}}"]
+        }
+      }
+    },
+    {
+      "name": "12. Transferir Aluno",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nova_turma_id\": \"{{turma_id}}\",\n  \"motivo\": \"Transferência de turno\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/{{matricula_id}}/transferir",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "{{matricula_id}}", "transferir"]
+        }
+      }
+    },
+    {
+      "name": "13. Finalizar Matrícula",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"concluido\",\n  \"motivo\": \"Conclusão do ano letivo\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/{{matricula_id}}/finalizar",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "{{matricula_id}}", "finalizar"]
+        }
+      }
+    },
+    {
+      "name": "14. Deletar Matrícula",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/matricula-aluno/{{matricula_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["matricula-aluno", "{{matricula_id}}"]
+        }
+      }
+    }
+  ]
+}
