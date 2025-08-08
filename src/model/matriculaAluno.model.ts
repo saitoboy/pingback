@@ -10,6 +10,19 @@ class MatriculaAlunoModel {
       .orderBy('created_at', 'desc');
   }
 
+  // Buscar matrícula por RA
+  static async buscarMatriculaPorRA(ra: string): Promise<MatriculaAluno | null> {
+    if (!ra?.trim()) {
+      throw new Error('RA é obrigatório');
+    }
+
+    const matriculas = await connection('matricula_aluno')
+      .where({ ra })
+      .select('*');
+
+    return matriculas.length > 0 ? matriculas[0] : null;
+  }
+
   // Buscar matrícula por ID
   static async buscarMatriculaPorId(matricula_aluno_id: string): Promise<MatriculaAluno | null> {
     if (!matricula_aluno_id?.trim()) {
@@ -92,6 +105,55 @@ class MatriculaAlunoModel {
     return matriculas.length > 0 ? matriculas[0] : null;
   }
 
+  // Gerar próximo RA disponível
+  static async gerarProximoRA(ano_letivo_id: string, turma_id: string): Promise<string> {
+    // Buscar dados do ano letivo e série
+    const dadosMatricula = await connection('ano_letivo')
+      .join('turma', () => {
+        // não precisamos de join aqui, vamos buscar separadamente
+      })
+      .where('ano_letivo.ano_letivo_id', ano_letivo_id)
+      .first('ano_letivo.ano');
+
+    const dadosTurma = await connection('turma')
+      .join('serie', 'turma.serie_id', 'serie.serie_id')
+      .where('turma.turma_id', turma_id)
+      .first('serie.nome_serie');
+
+    if (!dadosMatricula || !dadosTurma) {
+      throw new Error('Dados do ano letivo ou turma não encontrados');
+    }
+
+    const ano = dadosMatricula.ano;
+    // Extrair número da série do nome (ex: "1ª série" → 1)
+    const serie = dadosTurma.nome_serie ? parseInt(dadosTurma.nome_serie.match(/\d+/)?.[0]) || 1 : 1;
+
+    // Buscar o último RA para este ano/série
+    const ultimaMatricula = await connection('matricula_aluno')
+      .join('turma', 'matricula_aluno.turma_id', 'turma.turma_id')
+      .join('serie', 'turma.serie_id', 'serie.serie_id')
+      .join('ano_letivo', 'matricula_aluno.ano_letivo_id', 'ano_letivo.ano_letivo_id')
+      .where('ano_letivo.ano', ano)
+      .whereRaw('serie.nome_serie ~ ?', [`^${serie}`])
+      .whereNotNull('matricula_aluno.ra')
+      .orderBy('matricula_aluno.ra', 'desc')
+      .first('matricula_aluno.ra');
+
+    let proximoSequencial = 1;
+
+    if (ultimaMatricula && ultimaMatricula.ra) {
+      // Extrair o sequencial do último RA (últimos 3 dígitos)
+      const sequencialAtual = parseInt(ultimaMatricula.ra.slice(-3));
+      proximoSequencial = sequencialAtual + 1;
+    }
+
+    // Gerar RA no formato: ANOSERIENNN
+    const ra = `${ano}${serie}${proximoSequencial.toString().padStart(3, '0')}`;
+    
+    return ra;
+  }
+
+  // Criar matrícula
   // Criar matrícula
   static async criarMatricula(dadosMatricula: Partial<MatriculaAluno>): Promise<MatriculaAluno> {
     // Validações
@@ -141,7 +203,11 @@ class MatriculaAlunoModel {
       throw new Error('Aluno já possui matrícula ativa neste ano letivo');
     }
 
+    // Gerar RA automaticamente
+    const ra = await this.gerarProximoRA(dadosMatricula.ano_letivo_id, dadosMatricula.turma_id);
+
     const novaMatricula = {
+      ra,
       aluno_id: dadosMatricula.aluno_id,
       turma_id: dadosMatricula.turma_id,
       ano_letivo_id: dadosMatricula.ano_letivo_id,
@@ -229,7 +295,7 @@ class MatriculaAlunoModel {
     return deletedRows > 0;
   }
 
-  // Transferir aluno de turma
+  // Transferir aluno de turma (mesmo ano letivo) ou criar nova matrícula (ano diferente)
   static async transferirAluno(matricula_aluno_id: string, nova_turma_id: string, motivo?: string): Promise<MatriculaAluno | null> {
     if (!matricula_aluno_id?.trim()) {
       throw new Error('ID da matrícula é obrigatório');
@@ -238,24 +304,70 @@ class MatriculaAlunoModel {
       throw new Error('ID da nova turma é obrigatório');
     }
 
-    // Verificar se a nova turma existe
-    const turmaExiste = await connection('turma')
-      .where({ turma_id: nova_turma_id })
-      .first();
-    if (!turmaExiste) {
+    // Buscar dados da matrícula atual
+    const matriculaAtual = await this.buscarMatriculaPorId(matricula_aluno_id);
+    if (!matriculaAtual) {
+      throw new Error('Matrícula não encontrada');
+    }
+
+    // Verificar se a nova turma existe e obter seus dados
+    const novaTurma = await connection('turma')
+      .join('serie', 'turma.serie_id', 'serie.serie_id')
+      .join('ano_letivo as ano_novo', 'turma.ano_letivo_id', 'ano_novo.ano_letivo_id')
+      .where('turma.turma_id', nova_turma_id)
+      .first('turma.*', 'serie.nome_serie as nova_serie', 'ano_novo.ano as novo_ano', 'ano_novo.ano_letivo_id as novo_ano_letivo_id');
+
+    if (!novaTurma) {
       throw new Error('Nova turma não encontrada');
     }
 
-    const [matriculaAtualizada] = await connection('matricula_aluno')
-      .where({ matricula_aluno_id })
-      .update({
-        turma_id: nova_turma_id,
-        motivo_saida: motivo || 'Transferência de turma',
-        updated_at: connection.fn.now()
-      })
-      .returning('*');
+    // Buscar dados da turma atual
+    const turmaAtual = await connection('turma')
+      .join('serie', 'turma.serie_id', 'serie.serie_id')
+      .join('ano_letivo as ano_atual', 'turma.ano_letivo_id', 'ano_atual.ano_letivo_id')
+      .where('turma.turma_id', matriculaAtual.turma_id)
+      .first('turma.*', 'serie.nome_serie as serie_atual', 'ano_atual.ano as ano_atual');
 
-    return matriculaAtualizada || null;
+    // Verificar se é transferência no mesmo ano letivo ou mudança de ano
+    const mesmoAnoLetivo = matriculaAtual.ano_letivo_id === novaTurma.novo_ano_letivo_id;
+
+    if (mesmoAnoLetivo) {
+      // TRANSFERÊNCIA DE TURMA (mesmo ano letivo) - UPDATE na matrícula existente
+      const [matriculaAtualizada] = await connection('matricula_aluno')
+        .where({ matricula_aluno_id })
+        .update({
+          turma_id: nova_turma_id,
+          motivo_saida: motivo || `Transferência de turma: ${turmaAtual?.nome_turma || 'turma anterior'} → ${novaTurma.nome_turma}`,
+          updated_at: connection.fn.now()
+        })
+        .returning('*');
+
+      return matriculaAtualizada || null;
+
+    } else {
+      // MUDANÇA DE ANO LETIVO - Finalizar matrícula atual e criar nova
+      
+      // 1. Finalizar matrícula atual
+      await connection('matricula_aluno')
+        .where({ matricula_aluno_id })
+        .update({
+          status: 'transferido',
+          data_saida: new Date(),
+          motivo_saida: motivo || `Transferência para ${novaTurma.nova_serie} - ${novaTurma.novo_ano}`,
+          updated_at: connection.fn.now()
+        });
+
+      // 2. Criar nova matrícula
+      const novaMatricula = await this.criarMatricula({
+        aluno_id: matriculaAtual.aluno_id,
+        turma_id: nova_turma_id,
+        ano_letivo_id: novaTurma.novo_ano_letivo_id,
+        data_matricula: new Date(),
+        status: 'ativo'
+      });
+
+      return novaMatricula;
+    }
   }
 }
 

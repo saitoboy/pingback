@@ -10,6 +10,7 @@ router.use(autenticar);
 
 // Rotas básicas de consulta (todos os usuários autenticados)
 router.get('/', MatriculaAlunoController.listarMatriculas);
+router.get('/ra/:ra', MatriculaAlunoController.buscarMatriculaPorRA);
 router.get('/:matricula_aluno_id', MatriculaAlunoController.buscarMatriculaPorId);
 router.get('/aluno/:aluno_id', MatriculaAlunoController.buscarMatriculasPorAluno);
 router.get('/turma/:turma_id', MatriculaAlunoController.buscarMatriculasPorTurma);

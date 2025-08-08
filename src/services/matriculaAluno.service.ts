@@ -8,6 +8,11 @@ class MatriculaAlunoService {
     return await MatriculaAlunoModel.listarMatriculas();
   }
 
+  // Buscar matrícula por RA
+  static async buscarMatriculaPorRA(ra: string): Promise<MatriculaAluno | null> {
+    return await MatriculaAlunoModel.buscarMatriculaPorRA(ra);
+  }
+
   // Buscar matrícula por ID
   static async buscarMatriculaPorId(matricula_aluno_id: string): Promise<MatriculaAluno | null> {
     return await MatriculaAlunoModel.buscarMatriculaPorId(matricula_aluno_id);

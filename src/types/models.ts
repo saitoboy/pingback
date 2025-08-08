@@ -171,6 +171,7 @@ export interface Turma {
 
 export interface MatriculaAluno {
   matricula_aluno_id: string;
+  ra: string;
   aluno_id: string;
   turma_id: string;
   ano_letivo_id: string;

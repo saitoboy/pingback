@@ -26,6 +26,38 @@ class MatriculaAlunoController {
     }
   }
 
+  // Buscar matrícula por RA
+  static async buscarMatriculaPorRA(req: Request, res: Response): Promise<void> {
+    try {
+      const { ra } = req.params;
+      
+      logger.info(`🔍 Buscando matrícula por RA: ${ra}`, 'matricula');
+      
+      const matricula = await MatriculaAlunoService.buscarMatriculaPorRA(ra);
+      
+      if (!matricula) {
+        logger.warning(`⚠️ Matrícula não encontrada para RA: ${ra}`, 'matricula');
+        res.status(404).json({
+          sucesso: false,
+          mensagem: 'Matrícula não encontrada para este RA'
+        });
+        return;
+      }
+      
+      logger.success(`✅ Matrícula encontrada para RA: ${ra}`, 'matricula');
+      res.status(200).json({
+        sucesso: true,
+        dados: matricula
+      });
+    } catch (error) {
+      logger.error('❌ Erro ao buscar matrícula por RA', 'matricula', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
+
   // Buscar matrícula por ID
   static async buscarMatriculaPorId(req: Request, res: Response): Promise<void> {
     try {
@@ -280,11 +312,11 @@ class MatriculaAlunoController {
   static async transferirAluno(req: Request, res: Response): Promise<void> {
     try {
       const { matricula_aluno_id } = req.params;
-      const { nova_turma_id, motivo } = req.body;
+      const { turma_id, motivo } = req.body;
       
-      logger.info(`🔄 Transferindo aluno da matrícula: ${matricula_aluno_id} para turma: ${nova_turma_id}`, 'matricula');
+      logger.info(`🔄 Transferindo aluno da matrícula: ${matricula_aluno_id} para turma: ${turma_id}`, 'matricula');
       
-      const matriculaAtualizada = await MatriculaAlunoService.transferirAluno(matricula_aluno_id, nova_turma_id, motivo);
+      const matriculaAtualizada = await MatriculaAlunoService.transferirAluno(matricula_aluno_id, turma_id, motivo);
       
       if (!matriculaAtualizada) {
         logger.warning(`⚠️ Matrícula não encontrada para transferência: ${matricula_aluno_id}`, 'matricula');

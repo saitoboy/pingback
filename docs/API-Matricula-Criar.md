@@ -70,9 +70,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/json
 
 {
-  "aluno_id": "123e4567-e89b-12d3-a456-426614174000",
-  "turma_id": "987fcdeb-51a2-43d1-b789-123456789abc",
-  "ano_letivo_id": "456789ab-cdef-1234-5678-9abcdef01234",
+  "aluno_id": "1f60eb87-efde-4a4f-860f-8e7575b3e4cd",
+  "turma_id": "30d6bc8e-5b97-4da7-9163-1ed14374df31",
+  "ano_letivo_id": "b7aa6637-185c-4aa4-9284-14266b446c38",
   "data_matricula": "2025-08-08"
 }
 ```
@@ -85,6 +85,7 @@ Content-Type: application/json
   "mensagem": "Matrícula criada com sucesso",
   "dados": {
     "matricula_aluno_id": "789abc12-3def-4567-8901-23456789abcd",
+    "ra": "2025101",
     "aluno_id": "123e4567-e89b-12d3-a456-426614174000",
     "turma_id": "987fcdeb-51a2-43d1-b789-123456789abc",
     "ano_letivo_id": "456789ab-cdef-1234-5678-9abcdef01234",
@@ -97,6 +98,14 @@ Content-Type: application/json
   }
 }
 ```
+
+### 🆔 **Campo RA (Registro de Aluno)**
+
+O sistema agora gera automaticamente um **RA (Registro de Aluno)** único e memorável para cada matrícula:
+
+- **Formato:** `{ANO}{SÉRIE}{SEQUENCIAL}`
+- **Exemplo:** `2025101` = Ano 2025, 1ª série, aluno 001
+- **Vantagens:** Fácil de lembrar, informativo e único
 
 ## ❌ Respostas de Erro
 
@@ -288,18 +297,37 @@ Após criar uma matrícula, você pode usar estes endpoints relacionados:
 
 - `GET /matricula-aluno` - Listar todas as matrículas
 - `GET /matricula-aluno/{id}` - Buscar matrícula específica
+- `GET /matricula-aluno/ra/{ra}` - **🆔 Buscar matrícula por RA**
 - `PUT /matricula-aluno/{id}` - Atualizar matrícula
-- `PUT /matricula-aluno/{id}/transferir` - Transferir aluno
+- `PUT /matricula-aluno/{id}/transferir` - **🔄 Transferir aluno (inteligente)**
 - `PUT /matricula-aluno/{id}/finalizar` - Finalizar matrícula
 - `DELETE /matricula-aluno/{id}` - Deletar matrícula
 
+### 🔄 **Transferência Inteligente**
+
+O endpoint de transferência agora distingue automaticamente:
+
+**Transferência de Turma (mesmo ano letivo):**
+- Atualiza a matrícula existente
+- Mantém o RA e todos os dados acadêmicos
+- Ideal para mudanças de turno, disciplina, etc.
+
+**Mudança de Ano Letivo:**
+- Finaliza a matrícula atual
+- Cria nova matrícula com novo RA
+- Preserva histórico completo
+
 ## ⚠️ Observações Importantes
 
-1. **Unicidade:** Um aluno só pode ter uma matrícula ativa por ano letivo
-2. **Dependências:** Aluno, turma e ano letivo devem existir antes da matrícula
-3. **Auditoria:** Todas as operações são logadas para auditoria
-4. **Timestamps:** `created_at` e `updated_at` são preenchidos automaticamente
-5. **Status Padrão:** Se não informado, o status padrão é `'ativo'`
+1. **RA Automático:** O sistema gera automaticamente um RA único no formato `{ANO}{SÉRIE}{SEQUENCIAL}`
+2. **Transferência Inteligente:** 
+   - Mesmo ano letivo → Atualiza matrícula existente (dados preservados)
+   - Ano letivo diferente → Cria nova matrícula (novo RA)
+3. **Unicidade:** Um aluno só pode ter uma matrícula ativa por ano letivo
+4. **Dependências:** Aluno, turma e ano letivo devem existir antes da matrícula
+5. **Auditoria:** Todas as operações são logadas para auditoria
+6. **Timestamps:** `created_at` e `updated_at` são preenchidos automaticamente
+7. **Status Padrão:** Se não informado, o status padrão é `'ativo'`
 
 ## 🛠️ Troubleshooting
 
