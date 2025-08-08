@@ -1,19 +1,22 @@
 import { Request, Response } from 'express';
 import PeriodoLetivoService from '../services/periodoLetivo.service';
+import { logInfo, logSuccess, logError, logWarning } from '../utils/logger';
 
 class PeriodoLetivoController {
 
   // Listar todos os períodos letivos
   static async listarPeriodosLetivos(req: Request, res: Response): Promise<void> {
     try {
+      logInfo('📋 Listando todos os períodos letivos', 'controller');
       const periodos = await PeriodoLetivoService.listarPeriodosLetivos();
       
+      logSuccess(`✅ ${periodos.length} períodos letivos encontrados`, 'controller');
       res.status(200).json({
         sucesso: true,
         dados: periodos
       });
     } catch (error) {
-      console.error('Erro ao listar períodos letivos:', error);
+      logError('❌ Erro ao listar períodos letivos', 'controller', error);
       res.status(500).json({
         sucesso: false,
         mensagem: 'Erro interno do servidor',
@@ -42,7 +45,7 @@ class PeriodoLetivoController {
         dados: periodo
       });
     } catch (error) {
-      console.error('Erro ao buscar período letivo por ID:', error);
+      logError(' Erro ao buscar período letivo por ID', 'controller', error);
       
       if (error instanceof Error && error.message.includes('obrigatório')) {
         res.status(400).json({
@@ -72,7 +75,7 @@ class PeriodoLetivoController {
         dados: periodos
       });
     } catch (error) {
-      console.error('Erro ao buscar períodos letivos por ano:', error);
+      logError(' Erro ao buscar períodos letivos por ano', 'controller', error);
       
       if (error instanceof Error && (error.message.includes('obrigatório') || error.message.includes('não encontrado'))) {
         res.status(404).json({
@@ -110,7 +113,7 @@ class PeriodoLetivoController {
         dados: periodo
       });
     } catch (error) {
-      console.error('Erro ao buscar período letivo por bimestre e ano:', error);
+      logError(' Erro ao buscar período letivo por bimestre e ano', 'controller', error);
       
       if (error instanceof Error && error.message.includes('deve ser')) {
         res.status(400).json({
@@ -131,15 +134,17 @@ class PeriodoLetivoController {
   // Criar período letivo
   static async criarPeriodoLetivo(req: Request, res: Response): Promise<void> {
     try {
+      logInfo(`📝 Criando período letivo: ${req.body.bimestre}º bimestre`, 'controller');
       const periodo = await PeriodoLetivoService.criarPeriodoLetivo(req.body);
       
+      logSuccess(`✅ ${periodo.bimestre}º bimestre criado com sucesso [ID: ${periodo.periodo_letivo_id}]`, 'controller');
       res.status(201).json({
         sucesso: true,
         mensagem: 'Período letivo criado com sucesso',
         dados: periodo
       });
     } catch (error) {
-      console.error('Erro ao criar período letivo:', error);
+      logError(`❌ Erro ao criar período letivo: ${req.body.bimestre}º bimestre`, 'controller', error);
       
       if (error instanceof Error) {
         if (error.message.includes('Dados inválidos') || error.message.includes('obrigatório')) {
@@ -196,7 +201,7 @@ class PeriodoLetivoController {
         dados: periodo
       });
     } catch (error) {
-      console.error('Erro ao atualizar período letivo:', error);
+      logError(' Erro ao atualizar período letivo', 'controller', error);
       
       if (error instanceof Error) {
         if (error.message.includes('Dados inválidos') || error.message.includes('obrigatório')) {
@@ -252,7 +257,7 @@ class PeriodoLetivoController {
         mensagem: 'Período letivo deletado com sucesso'
       });
     } catch (error) {
-      console.error('Erro ao deletar período letivo:', error);
+      logError(' Erro ao deletar período letivo', 'controller', error);
       
       if (error instanceof Error && error.message.includes('não encontrado')) {
         res.status(404).json({
@@ -292,7 +297,7 @@ class PeriodoLetivoController {
         dados: bimestres
       });
     } catch (error) {
-      console.error('Erro ao criar todos os bimestres:', error);
+      logError(' Erro ao criar todos os bimestres', 'controller', error);
       
       if (error instanceof Error && error.message.includes('não encontrado')) {
         res.status(404).json({
