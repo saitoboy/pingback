@@ -107,14 +107,12 @@ class MatriculaAlunoModel {
 
   // Gerar próximo RA disponível
   static async gerarProximoRA(ano_letivo_id: string, turma_id: string): Promise<string> {
-    // Buscar dados do ano letivo e série
+    // Buscar dados do ano letivo
     const dadosMatricula = await connection('ano_letivo')
-      .join('turma', () => {
-        // não precisamos de join aqui, vamos buscar separadamente
-      })
-      .where('ano_letivo.ano_letivo_id', ano_letivo_id)
-      .first('ano_letivo.ano');
+      .where('ano_letivo_id', ano_letivo_id)
+      .first('ano');
 
+    // Buscar dados da turma e série
     const dadosTurma = await connection('turma')
       .join('serie', 'turma.serie_id', 'serie.serie_id')
       .where('turma.turma_id', turma_id)

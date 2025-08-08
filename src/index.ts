@@ -20,6 +20,7 @@ import periodoLetivoRoutes from './routes/periodoLetivo.routes';
 import serieRoutes from './routes/serie.routes';
 import turmaRoutes from './routes/turma.routes';
 import matriculaAlunoRoutes from './routes/matriculaAluno.routes';
+import fichaCadastroRoutes from './routes/fichaCadastro.routes';
 
 const app = express();
 
@@ -163,6 +164,9 @@ logDebug('🏫 Rotas de turma registradas', 'route');
 
 app.use('/matricula-aluno', matriculaAlunoRoutes);
 logDebug('📋 Rotas de matrícula de aluno registradas', 'route');
+
+app.use('/ficha-cadastro', fichaCadastroRoutes);
+logDebug('📝 Rotas de ficha cadastro registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
