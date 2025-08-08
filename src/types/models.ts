@@ -186,6 +186,8 @@ export interface MatriculaAluno {
 export interface Disciplina {
   disciplina_id: string;
   nome_disciplina: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface TurmaDisciplinaProfessor {
@@ -193,6 +195,8 @@ export interface TurmaDisciplinaProfessor {
   turma_id: string;
   disciplina_id: string;
   professor_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Aula {
