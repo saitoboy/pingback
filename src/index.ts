@@ -27,6 +27,7 @@ import aulaRoutes from './routes/aula.routes';
 import conteudoAulaRoutes from './routes/conteudoAula.routes';
 import atividadeRoutes from './routes/atividade.routes';
 import notaRoutes from './routes/nota.routes';
+import mediaDisciplinaBimestreRoutes from './routes/mediaDisciplinaBimestre.routes';
 
 const app = express();
 
@@ -191,6 +192,9 @@ logDebug('📝 Rotas de atividade registradas', 'route');
 
 app.use('/nota', notaRoutes);
 logDebug('📊 Rotas de nota registradas', 'route');
+
+app.use('/media-disciplina-bimestre', mediaDisciplinaBimestreRoutes);
+logDebug('📈 Rotas de média disciplina bimestre registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 

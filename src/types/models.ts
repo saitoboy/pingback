@@ -263,6 +263,8 @@ export interface MediaDisciplinaBimestre {
   valor_media: number;
   origem: 'manual' | 'calculada';
   observacao: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Boletim {
