@@ -87,14 +87,24 @@ export const deletar = async (id: string): Promise<boolean> => {
 };
 
 // Buscar com joins para detalhes completos
-export const buscarComDetalhes = async (id?: string): Promise<any[]> => {
+export const buscarComDetalhes = async (id?: string): Promise<any> => {
   let query = connection(tabela)
-    .select('*')
-    .orderBy('created_at', 'desc');
+    .select(
+      'tdp.*',
+      't.nome_turma',
+      'd.nome_disciplina',
+      'u.nome_usuario as nome_professor',
+      'u.email_usuario as email_professor'
+    )
+    .from(`${tabela} as tdp`)
+    .join('turma as t', 'tdp.turma_id', 't.turma_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
+    .join('professor as p', 'tdp.professor_id', 'p.professor_id')
+    .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
+    .orderBy('tdp.created_at', 'desc');
 
   if (id) {
-    query = query.where('turma_disciplina_professor_id', id);
-    return await query.first();
+    return await query.where('tdp.turma_disciplina_professor_id', id).first();
   }
 
   return await query;

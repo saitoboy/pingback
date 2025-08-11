@@ -23,6 +23,8 @@ import matriculaAlunoRoutes from './routes/matriculaAluno.routes';
 import fichaCadastroRoutes from './routes/fichaCadastro.routes';
 import disciplinaRoutes from './routes/disciplina.routes';
 import turmaDisciplinaProfessorRoutes from './routes/turmaDisciplinaProfessor.routes';
+import aulaRoutes from './routes/aula.routes';
+import conteudoAulaRoutes from './routes/conteudoAula.routes';
 
 const app = express();
 
@@ -175,6 +177,12 @@ logDebug('📚 Rotas de disciplina registradas', 'route');
 
 app.use('/vinculacao', turmaDisciplinaProfessorRoutes);
 logDebug('👨‍🏫📚 Rotas de turma-disciplina-professor registradas', 'route');
+
+app.use('/aula', aulaRoutes);
+logDebug('📝 Rotas de aula registradas', 'route');
+
+app.use('/conteudo-aula', conteudoAulaRoutes);
+logDebug('📚 Rotas de conteúdo de aula registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 

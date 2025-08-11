@@ -205,12 +205,17 @@ export interface Aula {
   data_aula: Date;
   hora_inicio: string;
   hora_fim: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface ConteudoAula {
   conteudo_aula_id: string;
   aula_id: string;
   descricao: string;
+  conteudo: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface PeriodoLetivo {
