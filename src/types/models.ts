@@ -235,6 +235,8 @@ export interface Atividade {
   periodo_letivo_id: string;
   aula_id: string;
   turma_disciplina_professor_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Nota {
@@ -242,6 +244,8 @@ export interface Nota {
   atividade_id: string;
   matricula_aluno_id: string;
   valor: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Frequencia {

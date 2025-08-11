@@ -25,6 +25,8 @@ import disciplinaRoutes from './routes/disciplina.routes';
 import turmaDisciplinaProfessorRoutes from './routes/turmaDisciplinaProfessor.routes';
 import aulaRoutes from './routes/aula.routes';
 import conteudoAulaRoutes from './routes/conteudoAula.routes';
+import atividadeRoutes from './routes/atividade.routes';
+import notaRoutes from './routes/nota.routes';
 
 const app = express();
 
@@ -183,6 +185,12 @@ logDebug('📝 Rotas de aula registradas', 'route');
 
 app.use('/conteudo-aula', conteudoAulaRoutes);
 logDebug('📚 Rotas de conteúdo de aula registradas', 'route');
+
+app.use('/atividade', atividadeRoutes);
+logDebug('📝 Rotas de atividade registradas', 'route');
+
+app.use('/nota', notaRoutes);
+logDebug('📊 Rotas de nota registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
