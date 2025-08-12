@@ -289,6 +289,33 @@ export interface BoletimDisciplina {
   updated_at: Date;
 }
 
+export interface HistoricoEscolar {
+  historico_escolar_id: string;
+  matricula_aluno_id: string;
+  ano_letivo_id: string;
+  situacao_final: 'aprovado' | 'reprovado' | 'aprovado_conselho' | 'transferido' | 'em_andamento';
+  observacoes_finais?: string;
+  data_conclusao?: Date;
+  media_geral_anual?: number;
+  total_disciplinas_cursadas: number;
+  disciplinas_aprovadas: number;
+  disciplinas_reprovadas: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface HistoricoEscolarDisciplina {
+  historico_disciplina_id: string;
+  historico_escolar_id: string;
+  turma_disciplina_professor_id: string;
+  media_final_disciplina: number;
+  total_faltas_disciplina: number;
+  situacao_disciplina: 'aprovado' | 'reprovado' | 'recuperacao' | 'em_andamento';
+  observacoes_disciplina?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 // Interface para Ficha de Cadastro Completa
 export interface FichaCadastroCompleta {
   aluno: {

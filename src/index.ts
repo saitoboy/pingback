@@ -30,6 +30,7 @@ import notaRoutes from './routes/nota.routes';
 import mediaDisciplinaBimestreRoutes from './routes/mediaDisciplinaBimestre.routes';
 import frequenciaRoutes from './routes/frequencia.routes';
 import boletimRoutes from './routes/boletim.routes';
+import historicoEscolarRoutes from './routes/historicoEscolar.routes';
 
 const app = express();
 
@@ -203,6 +204,9 @@ logDebug('📋 Rotas de frequência registradas', 'route');
 
 app.use('/boletim', boletimRoutes);
 logDebug('📄 Rotas de boletim registradas', 'route');
+
+app.use('/historico-escolar', historicoEscolarRoutes);
+logDebug('🎓 Rotas de histórico escolar registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
