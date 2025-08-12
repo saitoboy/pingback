@@ -24,9 +24,10 @@ export const buscarComDetalhes = async (media_disciplina_bimestre_id?: string): 
       'a.sobrenome_aluno',
       'd.nome_disciplina',
       'pl.bimestre',
-      'pl.ano_letivo',
+      'pl.ano_letivo_id',
       't.nome_turma',
-      't.serie_turma'
+      't.turno',
+      't.sala'
     )
     .from(`${tabela} as mdb`)
     .join('matricula_aluno as ma', 'mdb.matricula_aluno_id', 'ma.matricula_aluno_id')
@@ -56,7 +57,7 @@ export const buscarPorAluno = async (aluno_id: string): Promise<any[]> => {
       'ma.ra',
       'd.nome_disciplina',
       'pl.bimestre',
-      'pl.ano_letivo',
+      'pl.ano_letivo_id',
       't.nome_turma'
     )
     .from(`${tabela} as mdb`)
@@ -65,7 +66,7 @@ export const buscarPorAluno = async (aluno_id: string): Promise<any[]> => {
     .join('periodo_letivo as pl', 'mdb.periodo_letivo_id', 'pl.periodo_letivo_id')
     .join('turma as t', 'ma.turma_id', 't.turma_id')
     .where('ma.aluno_id', aluno_id)
-    .orderBy('pl.ano_letivo', 'desc')
+    .orderBy('pl.ano_letivo_id', 'desc')
     .orderBy('pl.bimestre', 'desc');
 };
 
@@ -82,7 +83,7 @@ export const buscarPorTurmaEDisciplina = async (
       'a.sobrenome_aluno',
       'd.nome_disciplina',
       'pl.bimestre',
-      'pl.ano_letivo',
+      'pl.ano_letivo_id',
       't.nome_turma'
     )
     .from(`${tabela} as mdb`)

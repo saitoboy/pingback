@@ -243,10 +243,10 @@ export class MediaDisciplinaBimestreController {
   // GET /api/media-disciplina-bimestre/estatisticas/aluno/:aluno_id/periodo-letivo/:periodo_letivo_id - Estatísticas por aluno
   static async obterEstatisticasPorAluno(req: Request, res: Response): Promise<void> {
     try {
-      const { aluno_id, periodo_letivo_id } = req.params;
-      logger.info(`📈 Controller: Obtendo estatísticas do aluno ${aluno_id} no período ${periodo_letivo_id}`, 'media-disciplina-bimestre');
+      const { aluno_id } = req.params;
+      logger.info(`📈 Controller: Obtendo estatísticas do aluno ${aluno_id}`, 'media-disciplina-bimestre');
       
-      const stats = await MediaDisciplinaBimestreService.obterEstatisticasPorAluno(aluno_id, periodo_letivo_id);
+      const stats = await MediaDisciplinaBimestreService.obterEstatisticasPorAluno(aluno_id);
       
       res.status(200).json({
         success: true,
