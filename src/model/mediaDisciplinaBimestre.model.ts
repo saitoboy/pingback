@@ -32,7 +32,8 @@ export const buscarComDetalhes = async (media_disciplina_bimestre_id?: string): 
     .from(`${tabela} as mdb`)
     .join('matricula_aluno as ma', 'mdb.matricula_aluno_id', 'ma.matricula_aluno_id')
     .join('aluno as a', 'ma.aluno_id', 'a.aluno_id')
-    .join('disciplina as d', 'mdb.disciplina_id', 'd.disciplina_id')
+    .join('turma_disciplina_professor as tdp', 'mdb.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
     .join('periodo_letivo as pl', 'mdb.periodo_letivo_id', 'pl.periodo_letivo_id')
     .join('turma as t', 'ma.turma_id', 't.turma_id')
     .orderBy('mdb.created_at', 'desc');
@@ -62,7 +63,8 @@ export const buscarPorAluno = async (aluno_id: string): Promise<any[]> => {
     )
     .from(`${tabela} as mdb`)
     .join('matricula_aluno as ma', 'mdb.matricula_aluno_id', 'ma.matricula_aluno_id')
-    .join('disciplina as d', 'mdb.disciplina_id', 'd.disciplina_id')
+    .join('turma_disciplina_professor as tdp', 'mdb.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
     .join('periodo_letivo as pl', 'mdb.periodo_letivo_id', 'pl.periodo_letivo_id')
     .join('turma as t', 'ma.turma_id', 't.turma_id')
     .where('ma.aluno_id', aluno_id)
@@ -89,11 +91,12 @@ export const buscarPorTurmaEDisciplina = async (
     .from(`${tabela} as mdb`)
     .join('matricula_aluno as ma', 'mdb.matricula_aluno_id', 'ma.matricula_aluno_id')
     .join('aluno as a', 'ma.aluno_id', 'a.aluno_id')
-    .join('disciplina as d', 'mdb.disciplina_id', 'd.disciplina_id')
+    .join('turma_disciplina_professor as tdp', 'mdb.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
     .join('periodo_letivo as pl', 'mdb.periodo_letivo_id', 'pl.periodo_letivo_id')
     .join('turma as t', 'ma.turma_id', 't.turma_id')
     .where('t.turma_id', turma_id)
-    .where('mdb.disciplina_id', disciplina_id)
+    .where('tdp.disciplina_id', disciplina_id)
     .orderBy('a.nome_aluno', 'asc')
     .orderBy('a.sobrenome_aluno', 'asc');
 
@@ -110,15 +113,15 @@ export const buscarPorPeriodoLetivo = async (periodo_letivo_id: string): Promise
     .orderBy('created_at', 'desc');
 };
 
-// Verificar se já existe uma média para a mesma matrícula, disciplina e período
+// Verificar se já existe uma média para a mesma matrícula, turma_disciplina_professor e período
 export const verificarExistenciaPorChaveUnica = async (
   matricula_aluno_id: string,
-  disciplina_id: string,
+  turma_disciplina_professor_id: string,
   periodo_letivo_id: string,
   media_disciplina_bimestre_id?: string
 ): Promise<MediaDisciplinaBimestre | undefined> => {
   let query = connection(tabela)
-    .where({ matricula_aluno_id, disciplina_id, periodo_letivo_id });
+    .where({ matricula_aluno_id, turma_disciplina_professor_id, periodo_letivo_id });
 
   if (media_disciplina_bimestre_id) {
     query = query.whereNot({ media_disciplina_bimestre_id });
@@ -133,6 +136,14 @@ export const verificarMatriculaValida = async (matricula_aluno_id: string): Prom
     .first();
 
   return !!matricula;
+};
+
+export const verificarTurmaDisciplinaProfessorValida = async (turma_disciplina_professor_id: string): Promise<boolean> => {
+  const turmaDisciplinaProfessor = await connection('turma_disciplina_professor')
+    .where({ turma_disciplina_professor_id })
+    .first();
+
+  return !!turmaDisciplinaProfessor;
 };
 
 export const verificarDisciplinaValida = async (disciplina_id: string): Promise<boolean> => {
@@ -160,10 +171,10 @@ export const criar = async (
     throw new Error('Matrícula do aluno não encontrada');
   }
 
-  // Verificar se a disciplina existe
-  const disciplinaValida = await verificarDisciplinaValida(mediaDisciplinaBimestre.disciplina_id);
-  if (!disciplinaValida) {
-    throw new Error('Disciplina não encontrada');
+  // Verificar se a turma_disciplina_professor existe
+  const turmaDisciplinaProfessorValida = await verificarTurmaDisciplinaProfessorValida(mediaDisciplinaBimestre.turma_disciplina_professor_id);
+  if (!turmaDisciplinaProfessorValida) {
+    throw new Error('Turma-disciplina-professor não encontrada');
   }
 
   // Verificar se o período letivo existe
@@ -175,12 +186,12 @@ export const criar = async (
   // Verificar se já existe uma média para a mesma chave única
   const mediaExistente = await verificarExistenciaPorChaveUnica(
     mediaDisciplinaBimestre.matricula_aluno_id,
-    mediaDisciplinaBimestre.disciplina_id,
+    mediaDisciplinaBimestre.turma_disciplina_professor_id,
     mediaDisciplinaBimestre.periodo_letivo_id
   );
 
   if (mediaExistente) {
-    throw new Error('Já existe uma média registrada para este aluno, disciplina e período letivo');
+    throw new Error('Já existe uma média registrada para este aluno, turma-disciplina-professor e período letivo');
   }
 
   // Validar valor da média (deve estar entre 0 e 10)
@@ -218,11 +229,11 @@ export const atualizar = async (
     }
   }
 
-  // Se estiver alterando disciplina, verificar se existe
-  if (dadosAtualizacao.disciplina_id) {
-    const disciplinaValida = await verificarDisciplinaValida(dadosAtualizacao.disciplina_id);
-    if (!disciplinaValida) {
-      throw new Error('Disciplina não encontrada');
+  // Se estiver alterando turma_disciplina_professor, verificar se existe
+  if (dadosAtualizacao.turma_disciplina_professor_id) {
+    const turmaDisciplinaProfessorValida = await verificarTurmaDisciplinaProfessorValida(dadosAtualizacao.turma_disciplina_professor_id);
+    if (!turmaDisciplinaProfessorValida) {
+      throw new Error('Turma-disciplina-professor não encontrada');
     }
   }
 
@@ -235,25 +246,25 @@ export const atualizar = async (
   }
 
   // Verificar unicidade se alguma das chaves estiver sendo alterada
-  if (dadosAtualizacao.matricula_aluno_id || dadosAtualizacao.disciplina_id || dadosAtualizacao.periodo_letivo_id) {
+  if (dadosAtualizacao.matricula_aluno_id || dadosAtualizacao.turma_disciplina_professor_id || dadosAtualizacao.periodo_letivo_id) {
     const mediaAtual = await buscarPorId(media_disciplina_bimestre_id);
     if (!mediaAtual) {
       throw new Error('Média não encontrada');
     }
 
     const novaMatricula = dadosAtualizacao.matricula_aluno_id || mediaAtual.matricula_aluno_id;
-    const novaDisciplina = dadosAtualizacao.disciplina_id || mediaAtual.disciplina_id;
+    const novaTurmaDisciplinaProfessor = dadosAtualizacao.turma_disciplina_professor_id || mediaAtual.turma_disciplina_professor_id;
     const novoPeriodo = dadosAtualizacao.periodo_letivo_id || mediaAtual.periodo_letivo_id;
 
     const mediaExistente = await verificarExistenciaPorChaveUnica(
       novaMatricula,
-      novaDisciplina,
+      novaTurmaDisciplinaProfessor,
       novoPeriodo,
       media_disciplina_bimestre_id
     );
 
     if (mediaExistente) {
-      throw new Error('Já existe uma média registrada para este aluno, disciplina e período letivo');
+      throw new Error('Já existe uma média registrada para este aluno, turma-disciplina-professor e período letivo');
     }
   }
 
@@ -310,8 +321,9 @@ export const obterEstatisticasPorTurmaDisciplina = async (
       connection.raw('COUNT(CASE WHEN valor_media < 7 THEN 1 END) as alunos_reprovados')
     )
     .join('matricula_aluno as ma', 'media_disciplina_bimestre.matricula_aluno_id', 'ma.matricula_aluno_id')
+    .join('turma_disciplina_professor as tdp', 'media_disciplina_bimestre.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
     .where('ma.turma_id', turma_id)
-    .where('media_disciplina_bimestre.disciplina_id', disciplina_id);
+    .where('tdp.disciplina_id', disciplina_id);
 
   if (periodo_letivo_id) {
     query = query.where('media_disciplina_bimestre.periodo_letivo_id', periodo_letivo_id);

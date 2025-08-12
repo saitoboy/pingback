@@ -320,31 +320,20 @@ export class BoletimService {
         observacoes_gerais: 'Boletim gerado automaticamente'
       });
 
-      // Buscar médias das disciplinas no período
-      const mediasModel = await import('../model/mediaDisciplinaBimestre.model');
-      const todasMedias = await mediasModel.buscarPorMatricula(matricula_aluno_id);
+      // TODO: Implementar geração automática baseada em turma_disciplina_professor
+      // Por ora, criamos apenas o boletim base sem disciplinas
       
-      // Filtrar médias pelo período letivo
-      const medias = todasMedias.filter(media => media.periodo_letivo_id === periodo_letivo_id);
-
-      // Criar disciplinas do boletim baseadas nas médias
-      const disciplinasBoletim = [];
-      for (const media of medias) {
-        const disciplinaBoletim = await this.criarDisciplinaBoletim({
-          boletim_id: novoBoletim.boletim_id,
-          disciplina_id: media.disciplina_id,
-          media_bimestre: media.valor_media,
-          faltas_bimestre: 0, // TODO: calcular faltas reais
-          observacoes_disciplina: media.observacao || undefined
-        });
-        disciplinasBoletim.push(disciplinaBoletim);
-      }
-
-      logger.info(`Boletim automático gerado com sucesso. ID: ${novoBoletim.boletim_id}, Disciplinas: ${disciplinasBoletim.length}`);
+      logger.info(`Boletim automático gerado com sucesso. ID: ${novoBoletim.boletim_id}`);
+      logger.warning('Geração automática de disciplinas ainda não implementada. Use endpoints específicos para adicionar disciplinas.');
       
       return {
         boletim: novoBoletim,
-        disciplinas: disciplinasBoletim
+        disciplinas: []
+      };
+      
+      return {
+        boletim: novoBoletim,
+        disciplinas: []
       };
     } catch (error) {
       logger.error(`Erro ao gerar boletim automático:`, 'BoletimService', error);

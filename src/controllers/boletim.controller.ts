@@ -358,10 +358,10 @@ export class BoletimController {
         return;
       }
 
-      if (!dadosDisciplina.disciplina_id) {
+      if (!dadosDisciplina.turma_disciplina_professor_id) {
         res.status(400).json({
           success: false,
-          message: 'ID da disciplina é obrigatório'
+          message: 'ID da turma-disciplina-professor é obrigatório'
         });
         return;
       }

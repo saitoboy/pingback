@@ -260,7 +260,7 @@ export interface Frequencia {
 export interface MediaDisciplinaBimestre {
   media_disciplina_bimestre_id: string;
   matricula_aluno_id: string;
-  disciplina_id: string;
+  turma_disciplina_professor_id: string;
   periodo_letivo_id: string;
   valor_media: number;
   origem: 'manual' | 'calculada';
@@ -281,7 +281,7 @@ export interface Boletim {
 export interface BoletimDisciplina {
   boletim_disciplina_id: string;
   boletim_id: string;
-  disciplina_id: string;
+  turma_disciplina_professor_id: string;
   media_bimestre: number;
   faltas_bimestre: number;
   observacoes_disciplina?: string;

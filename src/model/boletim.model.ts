@@ -230,25 +230,25 @@ export const criarDisciplinaBoletim = async (
     throw new Error('Boletim não encontrado');
   }
 
-  // Validar se a disciplina existe
-  const disciplina = await connection('disciplina')
-    .where({ disciplina_id: dadosDisciplina.disciplina_id })
+  // Validar se a turma_disciplina_professor existe
+  const turmaDisciplinaProfessor = await connection('turma_disciplina_professor')
+    .where({ turma_disciplina_professor_id: dadosDisciplina.turma_disciplina_professor_id })
     .first();
 
-  if (!disciplina) {
-    throw new Error('Disciplina não encontrada');
+  if (!turmaDisciplinaProfessor) {
+    throw new Error('Turma-disciplina-professor não encontrada');
   }
 
   // Validar se já existe disciplina no boletim
   const disciplinaExistente = await connection(tabelaDisciplina)
     .where({
       boletim_id: dadosDisciplina.boletim_id,
-      disciplina_id: dadosDisciplina.disciplina_id
+      turma_disciplina_professor_id: dadosDisciplina.turma_disciplina_professor_id
     })
     .first();
 
   if (disciplinaExistente) {
-    throw new Error('Esta disciplina já está vinculada a este boletim');
+    throw new Error('Esta turma-disciplina-professor já está vinculada a este boletim');
   }
 
   // Validar valores
@@ -290,21 +290,21 @@ export const atualizarDisciplinaBoletim = async (
     }
   }
 
-  // Se estiver alterando boletim ou disciplina, validar unicidade
-  if (dadosAtualizacao.boletim_id || dadosAtualizacao.disciplina_id) {
+  // Se estiver alterando boletim ou turma_disciplina_professor, validar unicidade
+  if (dadosAtualizacao.boletim_id || dadosAtualizacao.turma_disciplina_professor_id) {
     const boletim_id = dadosAtualizacao.boletim_id || disciplinaExistente.boletim_id;
-    const disciplina_id = dadosAtualizacao.disciplina_id || disciplinaExistente.disciplina_id;
+    const turma_disciplina_professor_id = dadosAtualizacao.turma_disciplina_professor_id || disciplinaExistente.turma_disciplina_professor_id;
 
     const conflito = await connection(tabelaDisciplina)
       .where({
         boletim_id,
-        disciplina_id
+        turma_disciplina_professor_id
       })
       .whereNot({ boletim_disciplina_id })
       .first();
 
     if (conflito) {
-      throw new Error('Esta disciplina já está vinculada a este boletim');
+      throw new Error('Esta turma-disciplina-professor já está vinculada a este boletim');
     }
   }
 
@@ -346,10 +346,20 @@ export const buscarBoletimCompleto = async (boletim_id: string): Promise<any> =>
   const disciplinas = await connection(tabelaDisciplina)
     .select(
       'bd.*',
-      'd.nome_disciplina'
+      'd.nome_disciplina',
+      't.nome_turma',
+      't.turno',
+      't.sala',
+      's.nome_serie',
+      'u.nome_usuario as nome_professor'
     )
     .from(`${tabelaDisciplina} as bd`)
-    .join('disciplina as d', 'bd.disciplina_id', 'd.disciplina_id')
+    .join('turma_disciplina_professor as tdp', 'bd.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
+    .join('turma as t', 'tdp.turma_id', 't.turma_id')
+    .join('serie as s', 't.serie_id', 's.serie_id')
+    .join('professor as p', 'tdp.professor_id', 'p.professor_id')
+    .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
     .where('bd.boletim_id', boletim_id)
     .orderBy('d.nome_disciplina');
 
@@ -377,6 +387,9 @@ export const gerarEstatisticas = async (periodo_letivo_id?: string): Promise<any
   let queryDisciplinas = connection(tabelaDisciplina)
     .select(
       'd.nome_disciplina',
+      't.nome_turma',
+      's.nome_serie',
+      'u.nome_usuario as nome_professor',
       connection.raw('COUNT(*) as total_registros'),
       connection.raw('COALESCE(AVG(bd.media_bimestre), 0) as media_geral'),
       connection.raw('COALESCE(SUM(bd.faltas_bimestre), 0) as total_faltas'),
@@ -384,7 +397,12 @@ export const gerarEstatisticas = async (periodo_letivo_id?: string): Promise<any
       connection.raw('COUNT(CASE WHEN bd.media_bimestre < 6 THEN 1 END) as reprovados')
     )
     .from(`${tabelaDisciplina} as bd`)
-    .join('disciplina as d', 'bd.disciplina_id', 'd.disciplina_id')
+    .join('turma_disciplina_professor as tdp', 'bd.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
+    .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
+    .join('turma as t', 'tdp.turma_id', 't.turma_id')
+    .join('serie as s', 't.serie_id', 's.serie_id')
+    .join('professor as p', 'tdp.professor_id', 'p.professor_id')
+    .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
     .join(`${tabela} as b`, 'bd.boletim_id', 'b.boletim_id');
 
   if (periodo_letivo_id) {

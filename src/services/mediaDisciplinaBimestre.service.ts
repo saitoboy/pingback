@@ -168,12 +168,12 @@ export class MediaDisciplinaBimestreService {
       // Verificar se já existe média para essa combinação
       const jaExiste = await MediaDisciplinaBimestreModel.verificarExistenciaPorChaveUnica(
         dadosMedia.matricula_aluno_id,
-        dadosMedia.disciplina_id,
+        dadosMedia.turma_disciplina_professor_id,
         dadosMedia.periodo_letivo_id
       );
 
       if (jaExiste) {
-        throw new Error('Já existe uma média para esta combinação de matrícula, disciplina e período letivo');
+        throw new Error('Já existe uma média para esta combinação de matrícula, turma-disciplina-professor e período letivo');
       }
 
       const mediaCriada = await MediaDisciplinaBimestreModel.criar(dadosMedia);
@@ -209,21 +209,21 @@ export class MediaDisciplinaBimestreService {
         await this.validarDadosMedia(dadosAtualizacao, true);
 
         // Verificar unicidade se os campos únicos foram alterados
-        if (dadosAtualizacao.matricula_aluno_id || dadosAtualizacao.disciplina_id || dadosAtualizacao.periodo_letivo_id) {
+        if (dadosAtualizacao.matricula_aluno_id || dadosAtualizacao.turma_disciplina_professor_id || dadosAtualizacao.periodo_letivo_id) {
           
           const matriculaId = dadosAtualizacao.matricula_aluno_id || mediaExistente.matricula_aluno_id;
-          const disciplinaId = dadosAtualizacao.disciplina_id || mediaExistente.disciplina_id;
+          const turmaDisciplinaProfessorId = dadosAtualizacao.turma_disciplina_professor_id || mediaExistente.turma_disciplina_professor_id;
           const periodoLetivoId = dadosAtualizacao.periodo_letivo_id || mediaExistente.periodo_letivo_id;
 
           const jaExiste = await MediaDisciplinaBimestreModel.verificarExistenciaPorChaveUnica(
             matriculaId,
-            disciplinaId,
+            turmaDisciplinaProfessorId,
             periodoLetivoId,
             media_disciplina_bimestre_id
           );
 
           if (jaExiste) {
-            throw new Error('Já existe uma média para esta combinação de matrícula, disciplina e período letivo');
+            throw new Error('Já existe uma média para esta combinação de matrícula, turma-disciplina-professor e período letivo');
           }
         }
       }
@@ -336,8 +336,8 @@ export class MediaDisciplinaBimestreService {
       if (!dados.matricula_aluno_id?.trim()) {
         errors.push('ID da matrícula é obrigatório');
       }
-      if (!dados.disciplina_id?.trim()) {
-        errors.push('ID da disciplina é obrigatório');
+      if (!dados.turma_disciplina_professor_id?.trim()) {
+        errors.push('ID da turma-disciplina-professor é obrigatório');
       }
       if (!dados.periodo_letivo_id?.trim()) {
         errors.push('ID do período letivo é obrigatório');
@@ -372,10 +372,10 @@ export class MediaDisciplinaBimestreService {
       }
     }
 
-    if (dados.disciplina_id) {
-      const disciplinaValida = await MediaDisciplinaBimestreModel.verificarDisciplinaValida(dados.disciplina_id);
-      if (!disciplinaValida) {
-        errors.push('Disciplina não encontrada');
+    if (dados.turma_disciplina_professor_id) {
+      const turmaDisciplinaProfessorValida = await MediaDisciplinaBimestreModel.verificarTurmaDisciplinaProfessorValida(dados.turma_disciplina_professor_id);
+      if (!turmaDisciplinaProfessorValida) {
+        errors.push('Turma-disciplina-professor não encontrada');
       }
     }
 
