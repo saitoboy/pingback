@@ -29,6 +29,7 @@ import atividadeRoutes from './routes/atividade.routes';
 import notaRoutes from './routes/nota.routes';
 import mediaDisciplinaBimestreRoutes from './routes/mediaDisciplinaBimestre.routes';
 import frequenciaRoutes from './routes/frequencia.routes';
+import boletimRoutes from './routes/boletim.routes';
 
 const app = express();
 
@@ -199,6 +200,9 @@ logDebug('📈 Rotas de média disciplina bimestre registradas', 'route');
 
 app.use('/frequencia', frequenciaRoutes);
 logDebug('📋 Rotas de frequência registradas', 'route');
+
+app.use('/boletim', boletimRoutes);
+logDebug('📄 Rotas de boletim registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 

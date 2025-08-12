@@ -272,9 +272,21 @@ export interface MediaDisciplinaBimestre {
 export interface Boletim {
   boletim_id: string;
   matricula_aluno_id: string;
-  ano_letivo_id: string;
-  status: 'aprovado' | 'reprovado';
-  tipo: 'completo' | 'simplificado';
+  periodo_letivo_id: string;
+  observacoes_gerais?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface BoletimDisciplina {
+  boletim_disciplina_id: string;
+  boletim_id: string;
+  disciplina_id: string;
+  media_bimestre: number;
+  faltas_bimestre: number;
+  observacoes_disciplina?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Interface para Ficha de Cadastro Completa
