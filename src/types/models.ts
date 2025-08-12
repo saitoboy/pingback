@@ -253,6 +253,8 @@ export interface Frequencia {
   aula_id: string;
   matricula_aluno_id: string;
   presenca: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface MediaDisciplinaBimestre {
