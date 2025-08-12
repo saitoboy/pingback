@@ -104,9 +104,17 @@ export class MediaDisciplinaBimestreService {
   }
 
   // Buscar médias por turma e disciplina
-  static async buscarPorTurmaEDisciplina(turma_id: string, disciplina_id: string): Promise<any[]> {
+  static async buscarPorTurmaEDisciplina(
+    turma_id: string, 
+    disciplina_id: string, 
+    periodo_letivo_id?: string
+  ): Promise<any[]> {
     try {
-      logger.info(`🔍 Buscando médias da turma ${turma_id} e disciplina ${disciplina_id}`, 'media-disciplina-bimestre');
+      const logMessage = periodo_letivo_id 
+        ? `🔍 Buscando médias da turma ${turma_id} e disciplina ${disciplina_id} no período ${periodo_letivo_id}`
+        : `🔍 Buscando médias da turma ${turma_id} e disciplina ${disciplina_id}`;
+      
+      logger.info(logMessage, 'media-disciplina-bimestre');
       
       if (!turma_id?.trim()) {
         throw new Error('ID da turma é obrigatório');
@@ -116,7 +124,11 @@ export class MediaDisciplinaBimestreService {
         throw new Error('ID da disciplina é obrigatório');
       }
 
-      const medias = await MediaDisciplinaBimestreModel.buscarPorTurmaEDisciplina(turma_id, disciplina_id);
+      const medias = await MediaDisciplinaBimestreModel.buscarPorTurmaEDisciplina(
+        turma_id, 
+        disciplina_id,
+        periodo_letivo_id
+      );
       logger.info(`✅ ${medias.length} médias encontradas para a turma e disciplina`, 'media-disciplina-bimestre');
       
       return medias;
@@ -217,6 +229,11 @@ export class MediaDisciplinaBimestreService {
       }
 
       const mediaAtualizada = await MediaDisciplinaBimestreModel.atualizar(media_disciplina_bimestre_id, dadosAtualizacao);
+      
+      if (!mediaAtualizada) {
+        throw new Error('Erro ao atualizar média');
+      }
+      
       logger.info(`✅ Média atualizada com sucesso: ID ${media_disciplina_bimestre_id}`, 'media-disciplina-bimestre');
       
       return mediaAtualizada;
@@ -254,19 +271,15 @@ export class MediaDisciplinaBimestreService {
   }
 
   // Obter estatísticas por aluno
-  static async obterEstatisticasPorAluno(aluno_id: string, periodo_letivo_id: string): Promise<any> {
+  static async obterEstatisticasPorAluno(aluno_id: string): Promise<any> {
     try {
-      logger.info(`📊 Obtendo estatísticas do aluno ${aluno_id} no período ${periodo_letivo_id}`, 'media-disciplina-bimestre');
+      logger.info(`📊 Obtendo estatísticas do aluno ${aluno_id}`, 'media-disciplina-bimestre');
       
       if (!aluno_id?.trim()) {
         throw new Error('ID do aluno é obrigatório');
       }
-      
-      if (!periodo_letivo_id?.trim()) {
-        throw new Error('ID do período letivo é obrigatório');
-      }
 
-      const stats = await MediaDisciplinaBimestreModel.obterEstatisticasPorAluno(aluno_id, periodo_letivo_id);
+      const stats = await MediaDisciplinaBimestreModel.obterEstatisticasPorAluno(aluno_id);
       logger.info(`✅ Estatísticas obtidas para o aluno`, 'media-disciplina-bimestre');
       
       return stats;
@@ -280,10 +293,14 @@ export class MediaDisciplinaBimestreService {
   static async obterEstatisticasPorTurmaDisciplina(
     turma_id: string,
     disciplina_id: string,
-    periodo_letivo_id: string
+    periodo_letivo_id?: string
   ): Promise<any> {
     try {
-      logger.info(`📊 Obtendo estatísticas da turma ${turma_id}, disciplina ${disciplina_id} no período ${periodo_letivo_id}`, 'media-disciplina-bimestre');
+      const logMessage = periodo_letivo_id 
+        ? `📊 Obtendo estatísticas da turma ${turma_id}, disciplina ${disciplina_id} no período ${periodo_letivo_id}`
+        : `📊 Obtendo estatísticas da turma ${turma_id}, disciplina ${disciplina_id}`;
+      
+      logger.info(logMessage, 'media-disciplina-bimestre');
       
       if (!turma_id?.trim()) {
         throw new Error('ID da turma é obrigatório');
@@ -291,10 +308,6 @@ export class MediaDisciplinaBimestreService {
       
       if (!disciplina_id?.trim()) {
         throw new Error('ID da disciplina é obrigatório');
-      }
-      
-      if (!periodo_letivo_id?.trim()) {
-        throw new Error('ID do período letivo é obrigatório');
       }
 
       const stats = await MediaDisciplinaBimestreModel.obterEstatisticasPorTurmaDisciplina(
@@ -355,7 +368,7 @@ export class MediaDisciplinaBimestreService {
     if (dados.matricula_aluno_id) {
       const matriculaValida = await MediaDisciplinaBimestreModel.verificarMatriculaValida(dados.matricula_aluno_id);
       if (!matriculaValida) {
-        errors.push('Matrícula não encontrada ou não está ativa');
+        errors.push('Matrícula não encontrada');
       }
     }
 
