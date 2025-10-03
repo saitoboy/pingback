@@ -6,7 +6,6 @@ import { AddressInfo } from "net";
 import connection from "./connection";
 import { logSuccess, logError, logInfo, logDebug } from './utils/logger';
 import authRoutes from './routes/auth.routes';
-import usuarioTipoRoutes from './routes/usuarioTipo.routes';
 import professorRoutes from './routes/professor.routes';
 import alunoRoutes from './routes/aluno.routes';
 import religiaoRoutes from './routes/religiao.routes';
@@ -31,6 +30,8 @@ import mediaDisciplinaBimestreRoutes from './routes/mediaDisciplinaBimestre.rout
 import frequenciaRoutes from './routes/frequencia.routes';
 import boletimRoutes from './routes/boletim.routes';
 import historicoEscolarRoutes from './routes/historicoEscolar.routes';
+import usuarioRoutes from './routes/usuario.routes';
+import usuarioTipoRoutes from './routes/usuarioTipo.routes';
 
 const app = express();
 
@@ -207,6 +208,12 @@ logDebug('📄 Rotas de boletim registradas', 'route');
 
 app.use('/historico-escolar', historicoEscolarRoutes);
 logDebug('🎓 Rotas de histórico escolar registradas', 'route');
+
+app.use('/usuarios', usuarioRoutes);
+logDebug('👥 Rotas de usuários registradas', 'route');
+
+app.use('/usuario-tipo', usuarioTipoRoutes);
+logDebug('🏷️ Rotas de tipos de usuário registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
