@@ -27,11 +27,29 @@ export const criar = async (usuario: Omit<Usuario, 'usuario_id' | 'created_at' |
 };
 
 // Listar todos os usuários
-export const listarTodos = async (): Promise<Usuario[]> => {
+export const listarTodos = async (): Promise<any[]> => {
   return await connection(tabela)
-    .select('*')
-    .orderBy('nome_usuario', 'asc');
+    .join('usuario_tipo', 'usuario.tipo_usuario_id', 'usuario_tipo.tipo_usuario_id')
+    .select(
+      'usuario.*',
+      'usuario_tipo.nome_tipo'
+    )
+    .orderBy('usuario.nome_usuario', 'asc');
 };
+
+// Listar usuários por tipo
+const listarPorTipo = async (nomeTipo: string): Promise<any[]> => {
+  return await connection(tabela)
+    .join('usuario_tipo', 'usuario.tipo_usuario_id', 'usuario_tipo.tipo_usuario_id')
+    .select(
+      'usuario.*',
+      'usuario_tipo.nome_tipo'
+    )
+    .where('usuario_tipo.nome_tipo', nomeTipo)
+    .orderBy('usuario.nome_usuario', 'asc');
+};
+
+export { listarPorTipo };
 
 // Atualizar usuário
 export const atualizar = async (usuario_id: string, dadosAtualizacao: Partial<Omit<Usuario, 'usuario_id' | 'created_at'>>): Promise<Usuario | undefined> => {

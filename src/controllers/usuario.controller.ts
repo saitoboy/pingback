@@ -6,6 +6,25 @@ export class UsuarioController {
   // 📋 LISTAR TODOS OS USUÁRIOS
   static async listarUsuarios(req: Request, res: Response) {
     try {
+      const { tipo } = req.query;
+      
+      // Se foi passado filtro de tipo, buscar por tipo
+      if (tipo && typeof tipo === 'string') {
+        logInfo(`📋 Listando usuários do tipo: ${tipo}`, 'controller');
+        
+        const usuarios = await UsuarioModel.listarPorTipo(tipo);
+        
+        logSuccess(`✅ ${usuarios.length} usuários do tipo "${tipo}" encontrados`, 'controller', { total: usuarios.length });
+        
+        return res.status(200).json({
+          status: 'sucesso',
+          mensagem: `Usuários do tipo "${tipo}" listados com sucesso`,
+          usuarios: usuarios,
+          total: usuarios.length
+        });
+      }
+      
+      // Caso contrário, listar todos
       logInfo('📋 Listando todos os usuários...', 'controller');
       
       const usuarios = await UsuarioModel.listarTodos();
@@ -15,7 +34,8 @@ export class UsuarioController {
       return res.status(200).json({
         status: 'sucesso',
         mensagem: 'Usuários listados com sucesso',
-        usuarios: usuarios
+        usuarios: usuarios,
+        total: usuarios.length
       });
     } catch (error: any) {
       logError(`❌ Erro ao listar usuários: ${error.message}`, 'controller', error);

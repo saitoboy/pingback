@@ -32,6 +32,7 @@ import boletimRoutes from './routes/boletim.routes';
 import historicoEscolarRoutes from './routes/historicoEscolar.routes';
 import usuarioRoutes from './routes/usuario.routes';
 import usuarioTipoRoutes from './routes/usuarioTipo.routes';
+import alocacaoProfessorRoutes from './routes/alocacaoProfessor.routes';
 
 const app = express();
 
@@ -214,6 +215,9 @@ logDebug('👥 Rotas de usuários registradas', 'route');
 
 app.use('/usuario-tipo', usuarioTipoRoutes);
 logDebug('🏷️ Rotas de tipos de usuário registradas', 'route');
+
+app.use('/alocacao-professor', alocacaoProfessorRoutes);
+logDebug('👩‍🏫 Rotas de alocação de professores registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
