@@ -190,6 +190,60 @@ export class ProfessorController {
       });
     }
   }
+
+  static async listarComTurmas(req: Request, res: Response) {
+    try {
+      const professores = await ProfessorService.listarProfessoresComTurmas();
+      
+      logSuccess('Lista de usuários do tipo professor com turmas obtida com sucesso', 'controller', { 
+        total: professores.length 
+      });
+      
+      return res.status(200).json({ 
+        professores,
+        total: professores.length 
+      });
+      
+    } catch (error: any) {
+      logError('Erro inesperado ao listar usuários do tipo professor com turmas', 'controller', error);
+      return res.status(500).json({ 
+        mensagem: 'Erro interno do servidor.',
+        detalhes: error.message 
+      });
+    }
+  }
+
+  static async listarTurmasProfessor(req: Request, res: Response) {
+    try {
+      const { professorId } = req.params;
+      
+      if (!professorId) {
+        logError('Erro ao buscar turmas do professor: professorId não fornecido', 'controller', req.params);
+        return res.status(400).json({ 
+          mensagem: 'ID do professor é obrigatório.' 
+        });
+      }
+
+      const turmas = await ProfessorService.listarTurmasProfessor(professorId);
+      
+      logSuccess('Lista de turmas do professor obtida com sucesso', 'controller', { 
+        professorId,
+        total: turmas.length 
+      });
+      
+      return res.status(200).json({ 
+        turmas,
+        total: turmas.length 
+      });
+      
+    } catch (error: any) {
+      logError('Erro inesperado ao listar turmas do professor', 'controller', error);
+      return res.status(500).json({ 
+        mensagem: 'Erro interno do servidor.',
+        detalhes: error.message 
+      });
+    }
+  }
 }
 
 export default ProfessorController;
