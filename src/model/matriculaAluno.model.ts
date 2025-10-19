@@ -55,9 +55,15 @@ class MatriculaAlunoModel {
     }
 
     return await connection('matricula_aluno')
-      .where({ turma_id })
-      .select('*')
-      .orderBy('data_matricula', 'desc');
+      .join('aluno', 'matricula_aluno.aluno_id', 'aluno.aluno_id')
+      .where('matricula_aluno.turma_id', turma_id)
+      .select(
+        'matricula_aluno.*',
+        'aluno.nome_aluno',
+        'aluno.sobrenome_aluno'
+      )
+      .orderBy('aluno.nome_aluno', 'asc')
+      .orderBy('aluno.sobrenome_aluno', 'asc');
   }
 
   // Buscar matrículas por ano letivo

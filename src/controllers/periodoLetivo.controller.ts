@@ -25,6 +25,36 @@ class PeriodoLetivoController {
     }
   }
 
+  // Buscar período letivo atual
+  static async buscarPeriodoLetivoAtual(req: Request, res: Response): Promise<void> {
+    try {
+      logInfo('📅 Buscando período letivo atual', 'controller');
+      const periodo = await PeriodoLetivoService.buscarPeriodoLetivoAtual();
+      
+      if (!periodo) {
+        logWarning('⚠️ Nenhum período letivo ativo encontrado', 'controller');
+        res.status(404).json({
+          sucesso: false,
+          mensagem: 'Nenhum período letivo ativo encontrado'
+        });
+        return;
+      }
+      
+      logSuccess(`✅ Período letivo atual encontrado: ${periodo.bimestre}º bimestre`, 'controller');
+      res.status(200).json({
+        sucesso: true,
+        dados: periodo
+      });
+    } catch (error) {
+      logError('❌ Erro ao buscar período letivo atual', 'controller', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro interno do servidor',
+        erro: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
   // Buscar período letivo por ID
   static async buscarPeriodoLetivoPorId(req: Request, res: Response): Promise<void> {
     try {

@@ -81,6 +81,8 @@ class ConteudoAulaService {
     conteudo: string;
   }): Promise<ConteudoAula> {
     try {
+      logger.info(`📝 Dados recebidos: ${JSON.stringify(dadosConteudo)}`, 'conteudo-aula');
+      
       // Validações
       if (!dadosConteudo.aula_id?.trim()) {
         throw new Error('ID da aula é obrigatório');
@@ -90,8 +92,8 @@ class ConteudoAulaService {
         throw new Error('Descrição do conteúdo é obrigatória');
       }
 
-      if (dadosConteudo.descricao.length < 5) {
-        throw new Error('Descrição deve ter pelo menos 5 caracteres');
+      if (dadosConteudo.descricao.length < 3) {
+        throw new Error('Descrição deve ter pelo menos 3 caracteres');
       }
 
       if (dadosConteudo.descricao.length > 255) {
@@ -102,8 +104,8 @@ class ConteudoAulaService {
         throw new Error('Conteúdo da aula é obrigatório');
       }
 
-      if (dadosConteudo.conteudo.length < 10) {
-        throw new Error('Conteúdo deve ter pelo menos 10 caracteres');
+      if (dadosConteudo.conteudo.length < 5) {
+        throw new Error('Conteúdo deve ter pelo menos 5 caracteres');
       }
 
       logger.info(`📝 Criando conteúdo de aula: ${dadosConteudo.descricao}`, 'conteudo-aula');

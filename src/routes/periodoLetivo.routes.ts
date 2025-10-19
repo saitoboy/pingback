@@ -10,6 +10,7 @@ router.use(autenticar);
 
 // Rotas básicas de consulta (todos os usuários autenticados)
 router.get('/', PeriodoLetivoController.listarPeriodosLetivos);
+router.get('/atual', PeriodoLetivoController.buscarPeriodoLetivoAtual);
 router.get('/:periodo_letivo_id', PeriodoLetivoController.buscarPeriodoLetivoPorId);
 router.get('/ano/:ano_letivo_id', PeriodoLetivoController.buscarPeriodosLetivosPorAno);
 router.get('/bimestre/:bimestre/ano/:ano_letivo_id', PeriodoLetivoController.buscarPeriodoLetivoPorBimestreEAno);

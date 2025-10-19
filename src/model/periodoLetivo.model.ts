@@ -31,6 +31,21 @@ class PeriodoLetivoModel {
     }
   }
 
+  // Buscar período letivo atual (do ano letivo ativo)
+  static async buscarPeriodoLetivoAtual(): Promise<PeriodoLetivo | null> {
+    try {
+      const periodo = await connection('periodo_letivo')
+        .join('ano_letivo', 'periodo_letivo.ano_letivo_id', 'ano_letivo.ano_letivo_id')
+        .where('ano_letivo.ativo', true)
+        .orderBy('periodo_letivo.bimestre', 'desc')
+        .first();
+      
+      return periodo || null;
+    } catch (error) {
+      throw new Error(`Erro ao buscar período letivo atual: ${error}`);
+    }
+  }
+
   // Buscar períodos letivos por ano letivo
   static async buscarPeriodosLetivosPorAno(ano_letivo_id: string): Promise<PeriodoLetivo[]> {
     try {

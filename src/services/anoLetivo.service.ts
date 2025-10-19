@@ -84,6 +84,16 @@ export class AnoLetivoService {
     }
   }
 
+  static async buscarAtivo(): Promise<AnoLetivo | null> {
+    try {
+      const anoLetivo = await AnoLetivoModel.buscarAtivo();
+      return anoLetivo || null;
+    } catch (error) {
+      logError('Erro ao buscar ano letivo ativo', 'service', error);
+      throw error;
+    }
+  }
+
   static async buscarPorId(ano_letivo_id: string): Promise<AnoLetivo | null> {
     try {
       const anoLetivo = await AnoLetivoModel.buscarPorId(ano_letivo_id);
