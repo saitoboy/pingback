@@ -15,10 +15,18 @@ export const buscarPorId = async (nota_id: string): Promise<Nota | undefined> =>
     .first();
 };
 
-export const buscarPorAtividade = async (atividade_id: string): Promise<Nota[]> => {
+export const buscarPorAtividade = async (atividade_id: string): Promise<any[]> => {
   return await connection(tabela)
-    .where({ atividade_id })
-    .orderBy('valor', 'desc');
+    .select(
+      'nota.*',
+      'matricula_aluno.ra',
+      'aluno.nome_aluno',
+      'aluno.sobrenome_aluno'
+    )
+    .leftJoin('matricula_aluno', 'nota.matricula_aluno_id', 'matricula_aluno.matricula_aluno_id')
+    .leftJoin('aluno', 'matricula_aluno.aluno_id', 'aluno.aluno_id')
+    .where('nota.atividade_id', atividade_id)
+    .orderBy('nota.valor', 'desc');
 };
 
 export const buscarPorAluno = async (matricula_aluno_id: string): Promise<Nota[]> => {
@@ -246,4 +254,65 @@ export const deletar = async (nota_id: string): Promise<boolean> => {
     .del();
 
   return linhasAfetadas > 0;
+};
+
+// Lançar notas em lote para uma atividade
+export const lancarNotasLote = async (
+  atividade_id: string,
+  notas: Array<{ matricula_aluno_id: string; valor: number }>
+): Promise<Nota[]> => {
+  // Verificar se a atividade existe e vale nota
+  const atividade = await connection('atividade')
+    .where({ atividade_id })
+    .first();
+
+  if (!atividade) {
+    throw new Error('Atividade não encontrada');
+  }
+
+  if (!atividade.vale_nota) {
+    throw new Error('Esta atividade não vale nota');
+  }
+
+  // Verificar se todas as matrículas existem e estão ativas
+  const matriculasIds = notas.map(n => n.matricula_aluno_id);
+  const matriculas = await connection('matricula_aluno')
+    .whereIn('matricula_aluno_id', matriculasIds)
+    .where('status', 'ativo');
+
+  if (matriculas.length !== matriculasIds.length) {
+    throw new Error('Uma ou mais matrículas não foram encontradas ou estão inativas');
+  }
+
+  // Verificar se já existem notas para esta atividade
+  const notasExistentes = await connection(tabela)
+    .where({ atividade_id })
+    .whereIn('matricula_aluno_id', matriculasIds);
+
+  if (notasExistentes.length > 0) {
+    throw new Error('Já existem notas registradas para alguns alunos nesta atividade. Use PUT para atualizar.');
+  }
+
+  // Validar valores das notas (0 a 10)
+  for (const nota of notas) {
+    if (nota.valor < 0 || nota.valor > 10) {
+      throw new Error(`Valor da nota deve estar entre 0 e 10. Valor recebido: ${nota.valor}`);
+    }
+  }
+
+  // Preparar dados para inserção
+  const dadosNotas = notas.map(nota => ({
+    atividade_id,
+    matricula_aluno_id: nota.matricula_aluno_id,
+    valor: nota.valor,
+    created_at: new Date(),
+    updated_at: new Date()
+  }));
+
+  // Inserir todas as notas em uma transação
+  const notasInseridas = await connection(tabela)
+    .insert(dadosNotas)
+    .returning('*');
+
+  return notasInseridas;
 };

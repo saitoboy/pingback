@@ -64,6 +64,13 @@ router.post('/',
   NotaController.criar
 );
 
+// POST /api/nota/lote - Lançar notas em lote para uma atividade
+// Permissões: ADMIN, PROFESSOR (Professor só pode lançar notas para suas atividades)
+router.post('/lote', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.PROFESSOR]),
+  NotaController.lancarNotasLote
+);
+
 // PUT /api/nota/:nota_id - Atualizar nota
 // Permissões: ADMIN, PROFESSOR (Professor só pode atualizar notas de suas atividades)
 router.put('/:nota_id', 

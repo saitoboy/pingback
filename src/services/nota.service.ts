@@ -164,6 +164,23 @@ export class NotaService {
     }
   }
 
+  static async lancarNotasLote(
+    atividade_id: string,
+    notas: Array<{ matricula_aluno_id: string; valor: number }>
+  ): Promise<Nota[]> {
+    try {
+      logger.info(`📊 Lançando notas em lote para atividade ${atividade_id}. Total de notas: ${notas.length}`);
+      
+      const notasRegistradas = await NotaModel.lancarNotasLote(atividade_id, notas);
+      
+      logger.info(`✅ Notas em lote lançadas com sucesso para atividade ${atividade_id}. Total registrado: ${notasRegistradas.length}`);
+      return notasRegistradas;
+    } catch (error) {
+      logger.error(`❌ Erro ao lançar notas em lote para atividade ${atividade_id}:`, error);
+      throw error;
+    }
+  }
+
   static async atualizar(nota_id: string, dadosAtualizacao: Partial<Omit<Nota, 'nota_id'>>): Promise<Nota | null> {
     try {
       if (!nota_id?.trim()) {
