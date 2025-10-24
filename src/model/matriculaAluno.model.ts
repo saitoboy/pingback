@@ -66,6 +66,29 @@ class MatriculaAlunoModel {
       .orderBy('aluno.sobrenome_aluno', 'asc');
   }
 
+  // Buscar alunos matriculados em uma aula específica
+  static async buscarAlunosPorAula(aula_id: string): Promise<any[]> {
+    if (!aula_id?.trim()) {
+      throw new Error('ID da aula é obrigatório');
+    }
+
+    return await connection('matricula_aluno as ma')
+      .join('aluno as a', 'ma.aluno_id', 'a.aluno_id')
+      .join('turma_disciplina_professor as tdp', 'ma.turma_id', 'tdp.turma_id')
+      .join('aula as au', function() {
+        this.on('au.turma_disciplina_professor_id', '=', 'tdp.turma_disciplina_professor_id')
+          .andOn('au.aula_id', '=', connection.raw('?', [aula_id]));
+      })
+      .select(
+        'ma.matricula_aluno_id',
+        'ma.ra',
+        'a.nome_aluno',
+        'a.sobrenome_aluno'
+      )
+      .orderBy('a.nome_aluno', 'asc')
+      .orderBy('a.sobrenome_aluno', 'asc');
+  }
+
   // Buscar matrículas por ano letivo
   static async buscarMatriculasPorAnoLetivo(ano_letivo_id: string): Promise<MatriculaAluno[]> {
     if (!ano_letivo_id?.trim()) {

@@ -133,6 +133,29 @@ export class AulaService {
     }
   }
 
+  // Buscar detalhes de uma aula específica (método mais robusto)
+  static async buscarDetalhesAula(aula_id: string): Promise<any> {
+    try {
+      const resultado = await AulaModel.buscarDetalhesAula(aula_id);
+      
+      if (!resultado) {
+        throw new Error('Aula não encontrada');
+      }
+      
+      logSuccess('Detalhes da aula obtidos', 'service', { 
+        aula_id,
+        tem_turma: !!resultado.nome_turma,
+        tem_disciplina: !!resultado.nome_disciplina,
+        tem_professor: !!resultado.nome_professor
+      });
+      
+      return resultado;
+    } catch (error) {
+      logError('Erro ao buscar detalhes da aula', 'service', error);
+      throw error;
+    }
+  }
+
   // Verificar acesso do professor à aula
   static async verificarAcessoProfessor(aula_id: string, professor_id: string): Promise<boolean> {
     try {

@@ -10,7 +10,7 @@ router.use(autenticar);
 
 // Rotas que precisam de permissão de ADMIN, SECRETARIO ou PROFESSOR
 router.get('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.listarTodas);
-router.get('/detalhes', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarComDetalhes);
+router.get('/detalhes/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarComDetalhes);
 router.get('/vinculacao/:turma_disciplina_professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarPorVinculacao);
 router.get('/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarPorId);
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.criar);

@@ -294,16 +294,28 @@ export class AulaController {
     try {
       const { aula_id } = req.params;
       
-      const resultado = await AulaService.buscarComDetalhes(aula_id);
+      // Usar o método mais robusto para buscar detalhes
+      const resultado = await AulaService.buscarDetalhesAula(aula_id);
+      
+      // Log de debug para verificar o resultado
+      console.log('🔍 Resultado da consulta:', resultado);
+      console.log('🔍 Tipo do resultado:', typeof resultado);
+      console.log('🔍 Dados encontrados:', {
+        aula_id: resultado?.aula_id,
+        nome_turma: resultado?.nome_turma,
+        nome_disciplina: resultado?.nome_disciplina,
+        nome_professor: resultado?.nome_professor
+      });
       
       logSuccess('Aulas com detalhes obtidas com sucesso', 'controller', { 
-        aula_id: aula_id || 'todas',
-        total: Array.isArray(resultado) ? resultado.length : 1
+        aula_id,
+        tem_dados: !!resultado
       });
       
       return res.status(200).json({ 
-        aulas: Array.isArray(resultado) ? resultado : [resultado],
-        total: Array.isArray(resultado) ? resultado.length : 1
+        sucesso: true,
+        dados: resultado,
+        total: 1
       });
       
     } catch (error: any) {
