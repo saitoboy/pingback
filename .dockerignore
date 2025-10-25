@@ -2,7 +2,7 @@
 node_modules
 npm-debug.log
 yarn-error.log
-package-lock.json
+# package-lock.json é necessário para npm ci - NÃO IGNORE!
 
 # Arquivos de build
 build
@@ -38,5 +38,5 @@ docs
 Thumbs.db
 .eslintrc
 .prettierrc
-tsconfig.json
+# tsconfig.json é necessário para o build - NÃO IGNORE!
 
