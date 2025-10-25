@@ -1,0 +1,42 @@
+# Dependências
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Arquivos de build
+build
+dist
+*.tsbuildinfo
+
+# Arquivos de desenvolvimento
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testes
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+
+# Documentação
+*.md
+docs
+
+# Outros
+.DS_Store
+Thumbs.db
+.eslintrc
+.prettierrc
+tsconfig.json
+
