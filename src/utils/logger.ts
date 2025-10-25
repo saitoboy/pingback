@@ -63,7 +63,7 @@ export const log = (
     default: colorCode = colors.white;
   }
 
-  const contextStr = context ? ` [${context.toUpperCase()}]` : '';
+  const contextStr = context && typeof context === 'string' ? ` [${context.toUpperCase()}]` : '';
   const logMessage = `${colorCode}${timestamp} ${emoji}${contextStr} ${message}${colors.reset}`;
   console.log(logMessage);
 

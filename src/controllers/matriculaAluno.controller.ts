@@ -138,6 +138,30 @@ class MatriculaAlunoController {
     }
   }
 
+  // Buscar alunos matriculados em uma aula específica
+  static async buscarAlunosPorAula(req: Request, res: Response): Promise<void> {
+    try {
+      const { aula_id } = req.params;
+      
+      logger.info(`🔍 Buscando alunos da aula: ${aula_id}`, 'matricula');
+      
+      const alunos = await MatriculaAlunoService.buscarAlunosPorAula(aula_id);
+      
+      logger.success(`✅ ${alunos.length} alunos encontrados para a aula: ${aula_id}`, 'matricula');
+      res.status(200).json({
+        sucesso: true,
+        dados: alunos,
+        total: alunos.length
+      });
+    } catch (error) {
+      logger.error('❌ Erro ao buscar alunos por aula', 'matricula', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
+
   // Buscar matrículas por ano letivo
   static async buscarMatriculasPorAnoLetivo(req: Request, res: Response): Promise<void> {
     try {

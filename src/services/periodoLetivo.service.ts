@@ -31,6 +31,15 @@ class PeriodoLetivoService {
     }
   }
 
+  // Buscar período letivo atual
+  static async buscarPeriodoLetivoAtual(): Promise<PeriodoLetivo | null> {
+    try {
+      return await PeriodoLetivoModel.buscarPeriodoLetivoAtual();
+    } catch (error) {
+      throw new Error(`Erro no service ao buscar período letivo atual: ${error}`);
+    }
+  }
+
   // Buscar período letivo por ID
   static async buscarPeriodoLetivoPorId(periodo_letivo_id: string): Promise<PeriodoLetivo | null> {
     try {

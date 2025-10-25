@@ -14,6 +14,8 @@ router.get('/me', ProfessorController.buscarMeuPerfil);
 // Rotas que precisam de permissão de ADMIN ou SECRETARIO
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.criar);
 router.get('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.listar);
+router.get('/com-turmas', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.listarComTurmas);
+router.get('/:professorId/turmas', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.listarTurmasProfessor);
 router.get('/:professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.buscarPorId);
 router.delete('/:professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.deletar);
 

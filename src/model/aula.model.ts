@@ -153,13 +153,21 @@ export const buscarComDetalhes = async (aula_id?: string): Promise<any> => {
     .select(
       'a.*',
       't.nome_turma',
+      't.turno',
+      't.sala',
+      's.nome_serie',
+      'al.ano',
+      'd.disciplina_id',
       'd.nome_disciplina',
+      'p.professor_id',
       'u.nome_usuario as nome_professor',
       'u.email_usuario as email_professor'
     )
     .from(`${tabela} as a`)
     .join('turma_disciplina_professor as tdp', 'a.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
     .join('turma as t', 'tdp.turma_id', 't.turma_id')
+    .join('serie as s', 't.serie_id', 's.serie_id')
+    .join('ano_letivo as al', 't.ano_letivo_id', 'al.ano_letivo_id')
     .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
     .join('professor as p', 'tdp.professor_id', 'p.professor_id')
     .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
@@ -171,6 +179,68 @@ export const buscarComDetalhes = async (aula_id?: string): Promise<any> => {
   }
 
   return await query;
+};
+
+// Buscar detalhes de uma aula específica de forma mais robusta
+export const buscarDetalhesAula = async (aula_id: string): Promise<any> => {
+  try {
+    // 1. Buscar dados básicos da aula
+    const aula = await connection(tabela)
+      .where('aula_id', aula_id)
+      .first();
+
+    if (!aula) {
+      return null;
+    }
+
+    // 2. Buscar dados da vinculação
+    const vinculacao = await connection('turma_disciplina_professor as tdp')
+      .select(
+        'tdp.*',
+        't.turma_id',
+        't.nome_turma',
+        't.turno',
+        't.sala',
+        's.nome_serie',
+        'al.ano',
+        'd.disciplina_id',
+        'd.nome_disciplina',
+        'p.professor_id',
+        'u.nome_usuario as nome_professor',
+        'u.email_usuario as email_professor'
+      )
+      .join('turma as t', 'tdp.turma_id', 't.turma_id')
+      .join('serie as s', 't.serie_id', 's.serie_id')
+      .join('ano_letivo as al', 't.ano_letivo_id', 'al.ano_letivo_id')
+      .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
+      .join('professor as p', 'tdp.professor_id', 'p.professor_id')
+      .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
+      .where('tdp.turma_disciplina_professor_id', aula.turma_disciplina_professor_id)
+      .first();
+
+    if (!vinculacao) {
+      return aula; // Retorna apenas os dados da aula se não encontrar vinculação
+    }
+
+    // 3. Combinar todos os dados
+    return {
+      ...aula,
+      turma_id: vinculacao.turma_id,
+      nome_turma: vinculacao.nome_turma,
+      turno: vinculacao.turno,
+      sala: vinculacao.sala,
+      nome_serie: vinculacao.nome_serie,
+      ano: vinculacao.ano,
+      disciplina_id: vinculacao.disciplina_id,
+      nome_disciplina: vinculacao.nome_disciplina,
+      professor_id: vinculacao.professor_id,
+      nome_professor: vinculacao.nome_professor,
+      email_professor: vinculacao.email_professor
+    };
+  } catch (error) {
+    console.error('Erro ao buscar detalhes da aula:', error);
+    throw error;
+  }
 };
 
 // Verificar se um professor tem acesso a uma aula (é o professor responsável)

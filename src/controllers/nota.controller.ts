@@ -15,7 +15,7 @@ export class NotaController {
         data: notas
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao listar notas:', error);
+      logger.error('❌ Erro no controller ao listar notas:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -43,7 +43,7 @@ export class NotaController {
         data: nota
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar nota por ID:', error);
+      logger.error('❌ Erro no controller ao buscar nota por ID:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -84,7 +84,7 @@ export class NotaController {
         });
       }
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar notas com detalhes:', error);
+      logger.error('❌ Erro no controller ao buscar notas com detalhes:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -104,7 +104,7 @@ export class NotaController {
         data: notas
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar notas por atividade:', error);
+      logger.error('❌ Erro no controller ao buscar notas por atividade:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -124,7 +124,7 @@ export class NotaController {
         data: notas
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar notas por aluno:', error);
+      logger.error('❌ Erro no controller ao buscar notas por aluno:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -144,7 +144,7 @@ export class NotaController {
         data: notas
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar notas por turma e disciplina:', error);
+      logger.error('❌ Erro no controller ao buscar notas por turma e disciplina:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -164,7 +164,7 @@ export class NotaController {
         data: stats
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao buscar estatísticas por aluno:', error);
+      logger.error('❌ Erro no controller ao buscar estatísticas por aluno:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -207,7 +207,7 @@ export class NotaController {
         data: novaNota
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao criar nota:', error);
+      logger.error('❌ Erro no controller ao criar nota:', 'controller', error);
       
       // Tratamento de erros específicos
       if (error instanceof Error) {
@@ -244,6 +244,106 @@ export class NotaController {
         }
       }
 
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  static async lancarNotasLote(req: Request, res: Response): Promise<Response> {
+    try {
+      const { atividade_id, notas } = req.body;
+      const usuario = (req as any).usuario;
+
+      // Validações básicas
+      if (!atividade_id || !notas || !Array.isArray(notas)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Campos obrigatórios: atividade_id e notas (array)'
+        });
+      }
+
+      if (notas.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'O array de notas não pode estar vazio'
+        });
+      }
+
+      // Validar estrutura de cada nota
+      for (const nota of notas) {
+        if (!nota.matricula_aluno_id || nota.valor === undefined) {
+          return res.status(400).json({
+            success: false,
+            message: 'Cada item do array deve conter matricula_aluno_id e valor'
+          });
+        }
+        
+        if (typeof nota.valor !== 'number' || nota.valor < 0 || nota.valor > 10) {
+          return res.status(400).json({
+            success: false,
+            message: 'O valor da nota deve ser um número entre 0 e 10'
+          });
+        }
+      }
+
+      // Validar permissões específicas para professores
+      if (usuario.tipo_usuario_id === TipoUsuario.PROFESSOR) {
+        // Professor só pode lançar notas para suas próprias atividades
+        const atividade = await require('../model/atividade.model').buscarPorId(atividade_id);
+        if (!atividade) {
+          return res.status(404).json({
+            success: false,
+            message: 'Atividade não encontrada'
+          });
+        }
+
+        const vinculacao = await require('../model/turmaDisciplinaProfessor.model').buscarPorId(atividade.turma_disciplina_professor_id);
+        if (!vinculacao || vinculacao.professor_id !== usuario.professor_id) {
+          return res.status(403).json({
+            success: false,
+            message: 'Acesso negado: você só pode lançar notas para suas próprias atividades'
+          });
+        }
+      }
+
+      logger.info(`Controller: Lançando notas em lote para atividade ${atividade_id}`);
+      
+      const notasRegistradas = await NotaService.lancarNotasLote(atividade_id, notas);
+      
+      return res.status(201).json({
+        success: true,
+        data: notasRegistradas,
+        message: `Notas em lote lançadas com sucesso. Total: ${notasRegistradas.length} registros`
+      });
+    } catch (error) {
+      logger.error('❌ Erro no controller ao lançar notas em lote:', 'controller', error);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('não encontrada') || error.message.includes('não encontrado')) {
+          return res.status(404).json({
+            success: false,
+            message: error.message
+          });
+        }
+        
+        if (error.message.includes('obrigatório') || error.message.includes('deve ser maior')) {
+          return res.status(400).json({
+            success: false,
+            message: error.message
+          });
+        }
+        
+        if (error.message.includes('Já existe')) {
+          return res.status(409).json({
+            success: false,
+            message: error.message
+          });
+        }
+      }
+      
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
@@ -295,7 +395,7 @@ export class NotaController {
         data: notaAtualizada
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao atualizar nota:', error);
+      logger.error('❌ Erro no controller ao atualizar nota:', 'controller', error);
       
       // Tratamento de erros específicos
       if (error instanceof Error && error.message.includes('deve estar entre 0 e 10')) {
@@ -355,7 +455,7 @@ export class NotaController {
         message: 'Nota deletada com sucesso'
       });
     } catch (error) {
-      logger.error('❌ Erro no controller ao deletar nota:', error);
+      logger.error('❌ Erro no controller ao deletar nota:', 'controller', error);
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',

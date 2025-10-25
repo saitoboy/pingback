@@ -8,25 +8,13 @@ const router = Router();
 // Todas as rotas precisam de autenticação
 router.use(autenticar);
 
-// GET /aula - Listar todas as aulas (todos podem ver)
-router.get('/', AulaController.listarAulas);
-
-// GET /aula/vinculacao/:id - Buscar aulas por vinculação (todos podem ver)
-router.get('/vinculacao/:id', AulaController.buscarAulasPorVinculacao);
-
-// GET /aula/data/:data - Buscar aulas por data (todos podem ver)
-router.get('/data/:data', AulaController.buscarAulasPorData);
-
-// GET /aula/:id - Buscar aula por ID (todos podem ver)
-router.get('/:id', AulaController.buscarAulaPorId);
-
-// POST /aula - Criar nova aula (ADMIN, SECRETARIO e PROFESSOR)
-router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.criarAula);
-
-// PUT /aula/:id - Atualizar aula (ADMIN, SECRETARIO e PROFESSOR)
-router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.atualizarAula);
-
-// DELETE /aula/:id - Deletar aula (ADMIN e PROFESSOR - professor só pode deletar suas próprias aulas)
-router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.PROFESSOR]), AulaController.deletarAula);
+// Rotas que precisam de permissão de ADMIN, SECRETARIO ou PROFESSOR
+router.get('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.listarTodas);
+router.get('/detalhes/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarComDetalhes);
+router.get('/vinculacao/:turma_disciplina_professor_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarPorVinculacao);
+router.get('/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.buscarPorId);
+router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.criar);
+router.put('/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.atualizar);
+router.delete('/:aula_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]), AulaController.deletar);
 
 export default router;

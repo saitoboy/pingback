@@ -120,6 +120,37 @@ export class ProfessorService {
       throw error;
     }
   }
+
+  static async listarProfessoresComTurmas(): Promise<any[]> {
+    try {
+      const professores = await ProfessorModel.listarProfessoresComTurmas();
+      
+      logSuccess('Lista de usuários do tipo professor com turmas obtida', 'service', { 
+        total: professores.length 
+      });
+      
+      return professores;
+    } catch (error) {
+      logError('Erro ao listar usuários do tipo professor com turmas', 'service', error);
+      throw error;
+    }
+  }
+
+  static async listarTurmasProfessor(professorId: string): Promise<any[]> {
+    try {
+      const turmas = await ProfessorModel.listarTurmasProfessor(professorId);
+      
+      logSuccess('Lista de turmas do professor obtida', 'service', { 
+        professorId,
+        total: turmas.length 
+      });
+      
+      return turmas;
+    } catch (error) {
+      logError('Erro ao listar turmas do professor', 'service', error);
+      throw error;
+    }
+  }
 }
 
 export default ProfessorService;

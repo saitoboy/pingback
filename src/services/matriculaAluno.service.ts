@@ -28,6 +28,11 @@ class MatriculaAlunoService {
     return await MatriculaAlunoModel.buscarMatriculasPorTurma(turma_id);
   }
 
+  // Buscar alunos matriculados em uma aula específica
+  static async buscarAlunosPorAula(aula_id: string): Promise<any[]> {
+    return await MatriculaAlunoModel.buscarAlunosPorAula(aula_id);
+  }
+
   // Buscar matrículas por ano letivo
   static async buscarMatriculasPorAnoLetivo(ano_letivo_id: string): Promise<MatriculaAluno[]> {
     return await MatriculaAlunoModel.buscarMatriculasPorAnoLetivo(ano_letivo_id);

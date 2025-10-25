@@ -15,6 +15,12 @@ export const buscarPorAno = async (ano: number): Promise<AnoLetivo | undefined> 
     .first();
 };
 
+export const buscarAtivo = async (): Promise<AnoLetivo | undefined> => {
+  return await connection(tabela)
+    .where({ ativo: true })
+    .first();
+};
+
 export const listarTodos = async (): Promise<AnoLetivo[]> => {
   return await connection(tabela)
     .select('*')

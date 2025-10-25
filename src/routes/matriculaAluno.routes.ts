@@ -14,6 +14,7 @@ router.get('/ra/:ra', MatriculaAlunoController.buscarMatriculaPorRA);
 router.get('/:matricula_aluno_id', MatriculaAlunoController.buscarMatriculaPorId);
 router.get('/aluno/:aluno_id', MatriculaAlunoController.buscarMatriculasPorAluno);
 router.get('/turma/:turma_id', MatriculaAlunoController.buscarMatriculasPorTurma);
+router.get('/aula/:aula_id', MatriculaAlunoController.buscarAlunosPorAula);
 router.get('/ano-letivo/:ano_letivo_id', MatriculaAlunoController.buscarMatriculasPorAnoLetivo);
 router.get('/status/:status', MatriculaAlunoController.buscarMatriculasPorStatus);
 router.get('/ativa/:aluno_id/:ano_letivo_id', MatriculaAlunoController.buscarMatriculaAtivaAluno);

@@ -321,7 +321,7 @@ export const obterEstatisticasPorTurmaDisciplina = async (
   return await query.first();
 };
 
-// Registrar frequência em lote para uma aula
+// Registrar frequência em lote para uma aula (upsert)
 export const registrarFrequenciaLote = async (
   aula_id: string,
   frequencias: Array<{ matricula_aluno_id: string; presenca: boolean }>
@@ -333,16 +333,11 @@ export const registrarFrequenciaLote = async (
   }
 
   const now = new Date();
-  const frequenciasParaInserir = frequencias.map(freq => ({
-    aula_id,
-    matricula_aluno_id: freq.matricula_aluno_id,
-    presenca: freq.presenca,
-    created_at: now,
-    updated_at: now
-  }));
+  const frequenciasResultadas: Frequencia[] = [];
 
-  // Verificar se todas as matrículas são válidas
+  // Processar cada frequência individualmente
   for (const freq of frequencias) {
+    // Verificar se a matrícula é válida
     const matriculaValida = await verificarMatriculaValida(freq.matricula_aluno_id);
     if (!matriculaValida) {
       throw new Error(`Matrícula ${freq.matricula_aluno_id} não encontrada`);
@@ -350,14 +345,34 @@ export const registrarFrequenciaLote = async (
 
     // Verificar se já existe frequência para esta matrícula nesta aula
     const existente = await verificarExistenciaPorChaveUnica(freq.matricula_aluno_id, aula_id);
+    
     if (existente) {
-      throw new Error(`Já existe frequência registrada para a matrícula ${freq.matricula_aluno_id} nesta aula`);
+      // Atualizar frequência existente
+      const [frequenciaAtualizada] = await connection(tabela)
+        .where('aula_id', aula_id)
+        .where('matricula_aluno_id', freq.matricula_aluno_id)
+        .update({
+          presenca: freq.presenca,
+          updated_at: now
+        })
+        .returning('*');
+      
+      frequenciasResultadas.push(frequenciaAtualizada);
+    } else {
+      // Inserir nova frequência
+      const [novaFrequencia] = await connection(tabela)
+        .insert({
+          aula_id,
+          matricula_aluno_id: freq.matricula_aluno_id,
+          presenca: freq.presenca,
+          created_at: now,
+          updated_at: now
+        })
+        .returning('*');
+      
+      frequenciasResultadas.push(novaFrequencia);
     }
   }
 
-  const frequenciasInseridas = await connection(tabela)
-    .insert(frequenciasParaInserir)
-    .returning('*');
-
-  return frequenciasInseridas;
+  return frequenciasResultadas;
 };

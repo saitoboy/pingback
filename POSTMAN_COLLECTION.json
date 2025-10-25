@@ -1,0 +1,736 @@
+{
+  "info": {
+    "name": "Sistema Escolar Pinguinho API",
+    "description": "Collection completa da API do Sistema Escolar Pinguinho",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@escola.com\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_usuario\": \"João Silva\",\n  \"email_usuario\": \"joao@escola.com\",\n  \"senha_usuario\": \"123456\",\n  \"tipo_usuario_id\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/registrar",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "registrar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Usuário Logado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧑‍🎓 Alunos",
+      "item": [
+        {
+          "name": "Listar Alunos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/aluno",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Aluno por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/aluno/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Aluno por CPF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/aluno/cpf/12345678901",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno", "cpf", "12345678901"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Aluno",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_aluno\": \"João Silva\",\n  \"sobrenome_aluno\": \"Santos\",\n  \"data_nascimento_aluno\": \"2010-05-15\",\n  \"cpf_aluno\": \"12345678901\",\n  \"rg_aluno\": \"123456789\",\n  \"naturalidade_aluno\": \"São Paulo\",\n  \"endereco_aluno\": \"Rua das Flores, 123\",\n  \"bairro_aluno\": \"Centro\",\n  \"cep_aluno\": \"01234567\",\n  \"religiao_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/aluno",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Aluno",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_aluno\": \"João Silva Atualizado\",\n  \"sobrenome_aluno\": \"Santos\",\n  \"data_nascimento_aluno\": \"2010-05-15\",\n  \"cpf_aluno\": \"12345678901\",\n  \"rg_aluno\": \"123456789\",\n  \"naturalidade_aluno\": \"São Paulo\",\n  \"endereco_aluno\": \"Rua das Flores, 123\",\n  \"bairro_aluno\": \"Centro\",\n  \"cep_aluno\": \"01234567\",\n  \"religiao_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/aluno/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remover Aluno",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/aluno/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["aluno", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👨‍🏫 Professores",
+      "item": [
+        {
+          "name": "Listar Professores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/professor",
+              "host": ["{{baseUrl}}"],
+              "path": ["professor"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Professor por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/professor/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["professor", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Professor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/professor",
+              "host": ["{{baseUrl}}"],
+              "path": ["professor"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏫 Turmas",
+      "item": [
+        {
+          "name": "Listar Turmas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/turma",
+              "host": ["{{baseUrl}}"],
+              "path": ["turma"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Turma por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/turma/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["turma", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Turma",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serie_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"ano_letivo_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"nome_turma\": \"3A\",\n  \"turno\": \"Manhã\",\n  \"sala\": \"Sala 101\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turma",
+              "host": ["{{baseUrl}}"],
+              "path": ["turma"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Disciplinas",
+      "item": [
+        {
+          "name": "Listar Disciplinas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/disciplina",
+              "host": ["{{baseUrl}}"],
+              "path": ["disciplina"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Disciplina",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_disciplina\": \"Matemática\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/disciplina",
+              "host": ["{{baseUrl}}"],
+              "path": ["disciplina"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Matrículas",
+      "item": [
+        {
+          "name": "Listar Matrículas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/matricula-aluno",
+              "host": ["{{baseUrl}}"],
+              "path": ["matricula-aluno"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Matrícula",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"turma_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"ano_letivo_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"data_matricula\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/matricula-aluno",
+              "host": ["{{baseUrl}}"],
+              "path": ["matricula-aluno"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Ficha de Cadastro",
+      "item": [
+        {
+          "name": "Obter Modelo da Ficha",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ficha-cadastro/modelo",
+              "host": ["{{baseUrl}}"],
+              "path": ["ficha-cadastro", "modelo"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Processar Ficha Completa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aluno\": {\n    \"nome_aluno\": \"João Silva\",\n    \"sobrenome_aluno\": \"Santos\",\n    \"data_nascimento_aluno\": \"2010-05-15\",\n    \"cpf_aluno\": \"12345678901\",\n    \"rg_aluno\": \"123456789\",\n    \"naturalidade_aluno\": \"São Paulo\",\n    \"endereco_aluno\": \"Rua das Flores, 123\",\n    \"bairro_aluno\": \"Centro\",\n    \"cep_aluno\": \"01234567\",\n    \"religiao_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n  },\n  \"certidao\": {\n    \"livro_certidao\": \"123\",\n    \"matricula_certidao\": \"456\",\n    \"termo_certidao\": \"789\",\n    \"folha_certidao\": \"101\",\n    \"data_expedicao_certidao\": \"2010-05-20\",\n    \"nome_cartorio_certidao\": \"Cartório Central\"\n  },\n  \"responsaveis\": [\n    {\n      \"nome_responsavel\": \"Maria Silva\",\n      \"sobrenome_responsavel\": \"Santos\",\n      \"telefone_responsavel\": \"11999999999\",\n      \"rg_responsavel\": \"987654321\",\n      \"cpf_responsavel\": \"98765432100\",\n      \"grau_instrucao_responsavel\": \"Superior\",\n      \"email_responsavel\": \"maria@email.com\",\n      \"parentesco_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n    }\n  ],\n  \"dados_saude\": {\n    \"vacinas_em_dia\": true,\n    \"dorme_bem\": true,\n    \"alimenta_se_bem\": true,\n    \"uso_sanitario_sozinho\": true,\n    \"historico_convulsao\": false,\n    \"perda_esfincter_emocional\": false,\n    \"frequentou_outra_escola\": false,\n    \"gravidez_tranquila\": true,\n    \"tem_irmaos\": true,\n    \"fonoaudiologico\": false,\n    \"psicopedagogico\": false,\n    \"neurologico\": false\n  },\n  \"diagnostico\": {\n    \"cegueira\": false,\n    \"baixa_visao\": false,\n    \"surdez\": false,\n    \"deficiencia_auditiva\": false,\n    \"surdocegueira\": false,\n    \"deficiencia_fisica\": false,\n    \"deficiencia_multipla\": false,\n    \"deficiencia_intelectual\": false,\n    \"sindrome_down\": false,\n    \"altas_habilidades\": false,\n    \"tea\": false,\n    \"alteracoes_processamento_auditivo\": false,\n    \"tdah\": false\n  },\n  \"matricula\": {\n    \"turma_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"ano_letivo_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"data_matricula\": \"2024-01-15\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ficha-cadastro",
+              "host": ["{{baseUrl}}"],
+              "path": ["ficha-cadastro"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Notas",
+      "item": [
+        {
+          "name": "Listar Notas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nota",
+              "host": ["{{baseUrl}}"],
+              "path": ["nota"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Nota",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atividade_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"valor\": 8.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/nota",
+              "host": ["{{baseUrl}}"],
+              "path": ["nota"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Frequência",
+      "item": [
+        {
+          "name": "Listar Frequências",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Frequência em Lote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aula_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"frequencias\": [\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n      \"presenca\": true\n    },\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n      \"presenca\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/lote",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "lote"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📄 Boletins",
+      "item": [
+        {
+          "name": "Listar Boletins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boletim",
+              "host": ["{{baseUrl}}"],
+              "path": ["boletim"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Boletim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"periodo_letivo_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"observacoes_gerais\": \"Aluno com bom desempenho\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boletim",
+              "host": ["{{baseUrl}}"],
+              "path": ["boletim"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎓 Histórico Escolar",
+      "item": [
+        {
+          "name": "Listar Históricos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/historico-escolar",
+              "host": ["{{baseUrl}}"],
+              "path": ["historico-escolar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gerar Histórico Automático",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/historico-escolar/gerar-automatico",
+              "host": ["{{baseUrl}}"],
+              "path": ["historico-escolar", "gerar-automatico"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔧 Utilitários",
+      "item": [
+        {
+          "name": "Testar Conexão",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/test-connection",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-connection"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Raiz da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
