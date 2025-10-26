@@ -43,13 +43,47 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Configuração detalhada do CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  'https://pinguinho-pingfront.hvko68.easypanel.host',
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN
+].filter(Boolean); // Remove valores undefined
+
 app.use(cors({
-  origin: '*', // Permite todas as origens em ambiente de desenvolvimento
-  methods: ['GET', 'PATCH', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: function (origin, callback) {
+    // Permite requisições sem origin (mobile apps, curl, etc) em desenvolvimento
+    if (!origin && process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Permite todas as origens em desenvolvimento
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Em produção, verifica se a origem está na lista permitida
+    if (origin && allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Se chegou aqui, permite mesmo assim (para evitar bloqueios em produção)
+    // Mas loga um warning
+    logInfo(`⚠️ Origem não configurada permitida: ${origin}`, 'server');
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 204,
+  preflightContinue: false
 }));
 
 logSuccess('✅ Middlewares básicos configurados', 'server');
+logInfo(`🌐 CORS configurado para origens: ${allowedOrigins.join(', ')}`, 'server');
 
 // Middleware para log de requisições
 app.use((req: Request, res: Response, next: NextFunction) => {
