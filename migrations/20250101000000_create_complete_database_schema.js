@@ -392,7 +392,7 @@ exports.up = async function(knex) {
     table.index('vale_nota');
     
     // Constraint para peso positivo
-    table.check('peso > 0', 'check_atividade_peso_positivo');
+    table.check('peso > 0');
   });
 
   // 21. NOTAS
@@ -417,7 +417,7 @@ exports.up = async function(knex) {
     table.unique(['atividade_id', 'matricula_aluno_id']);
     
     // Constraint para valor da nota entre 0 e 10
-    table.check('valor >= 0 AND valor <= 10', 'check_nota_valor');
+    table.check('valor >= 0 AND valor <= 10');
   });
 
   // 22. FREQUÊNCIA
@@ -468,7 +468,7 @@ exports.up = async function(knex) {
     table.unique(['matricula_aluno_id', 'turma_disciplina_professor_id', 'periodo_letivo_id']);
     
     // Constraint para valor da média entre 0 e 10
-    table.check('valor_media >= 0 AND valor_media <= 10', 'check_media_valor');
+    table.check('valor_media >= 0 AND valor_media <= 10');
   });
 
   // 24. BOLETIM
@@ -515,10 +515,10 @@ exports.up = async function(knex) {
     table.unique(['boletim_id', 'turma_disciplina_professor_id']);
     
     // Constraint para valor da média entre 0 e 10
-    table.check('media_bimestre >= 0 AND media_bimestre <= 10', 'check_boletim_disciplina_media');
+    table.check('media_bimestre >= 0 AND media_bimestre <= 10');
     
     // Constraint para faltas não negativas
-    table.check('faltas_bimestre >= 0', 'check_boletim_disciplina_faltas');
+    table.check('faltas_bimestre >= 0');
   });
 
   // 26. HISTÓRICO ESCOLAR
@@ -548,10 +548,10 @@ exports.up = async function(knex) {
     table.unique(['matricula_aluno_id', 'ano_letivo_id']);
     
     // Constraint para valor da média entre 0 e 10
-    table.check('media_final_anual >= 0 AND media_final_anual <= 10', 'check_historico_media');
+    table.check('media_final_anual >= 0 AND media_final_anual <= 10');
     
     // Constraint para faltas não negativas
-    table.check('total_faltas_anual >= 0', 'check_historico_faltas');
+    table.check('total_faltas_anual >= 0');
   });
 
   // 27. HISTÓRICO ESCOLAR DISCIPLINA
@@ -580,10 +580,10 @@ exports.up = async function(knex) {
     table.unique(['historico_escolar_id', 'turma_disciplina_professor_id']);
     
     // Constraint para valor da média entre 0 e 10
-    table.check('media_final_disciplina >= 0 AND media_final_disciplina <= 10', 'check_historico_disciplina_media');
+    table.check('media_final_disciplina >= 0 AND media_final_disciplina <= 10');
     
     // Constraint para faltas não negativas
-    table.check('total_faltas_disciplina >= 0', 'check_historico_disciplina_faltas');
+    table.check('total_faltas_disciplina >= 0');
   });
 
   // 28. ALOCAÇÃO PROFESSOR (tabela adicional para controle de alocação)
