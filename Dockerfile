@@ -51,10 +51,6 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3003
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3003/', (r) => {if(r.statusCode !== 200) throw new Error(r.statusCode)})"
-
 # Comando para iniciar (migrations + start)
-CMD ["sh", "-c", "npm run migrate && node build/index.js"]
+CMD ["sh", "-c", "node build/index.js"]
 
