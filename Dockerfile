@@ -52,5 +52,5 @@ ENV HOST=0.0.0.0
 ENV PORT=3003
 
 # Comando para iniciar (migrations + start)
-CMD ["sh", "-c", "node build/index.js"]
+CMD ["sh", "-c", "npm run migrate && node build/index.js"]
 
