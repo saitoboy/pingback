@@ -130,23 +130,19 @@ export class ProfessorController {
         });
       }
 
-      const professor = await ProfessorService.buscarPorUsuarioId(req.usuario.usuario_id);
-      
-      if (!professor) {
-        logError(`Perfil de professor não encontrado para usuário: ${req.usuario.usuario_id}`, 'controller', { 
-          usuario_id: req.usuario.usuario_id 
-        });
-        return res.status(404).json({ 
-          mensagem: 'Perfil de professor não encontrado para este usuário.' 
-        });
-      }
-
-      logSuccess(`Perfil de professor encontrado: ${professor.professor_id}`, 'controller', { 
-        professor_id: professor.professor_id,
+      // Retorna os dados do usuário logado (que é o professor)
+      logSuccess(`Perfil do professor encontrado: ${req.usuario.usuario_id}`, 'controller', { 
         usuario_id: req.usuario.usuario_id 
       });
       
-      return res.status(200).json({ professor });
+      return res.status(200).json({ 
+        professor: {
+          usuario_id: req.usuario.usuario_id,
+          nome_usuario: req.usuario.nome_usuario,
+          email_usuario: req.usuario.email_usuario,
+          tipo_usuario_id: req.usuario.tipo_usuario_id
+        }
+      });
       
     } catch (error: any) {
       logError('Erro inesperado ao buscar perfil de professor', 'controller', error);
@@ -238,6 +234,38 @@ export class ProfessorController {
       
     } catch (error: any) {
       logError('Erro inesperado ao listar turmas do professor', 'controller', error);
+      return res.status(500).json({ 
+        mensagem: 'Erro interno do servidor.',
+        detalhes: error.message 
+      });
+    }
+  }
+
+  static async listarMinhasTurmas(req: Request, res: Response) {
+    try {
+      if (!req.usuario) {
+        logError('Usuário não autenticado ao buscar turmas do professor', 'controller');
+        return res.status(401).json({ 
+          mensagem: 'Usuário não autenticado.' 
+        });
+      }
+
+      // O professor_id na tabela turma_disciplina_professor é na verdade o usuario_id
+      // Busca as turmas diretamente usando o usuario_id do usuário logado
+      const turmas = await ProfessorService.listarTurmasProfessor(req.usuario.usuario_id);
+      
+      logSuccess('Lista de turmas do professor logado obtida com sucesso', 'controller', { 
+        usuario_id: req.usuario.usuario_id,
+        total: turmas.length 
+      });
+      
+      return res.status(200).json({ 
+        turmas,
+        total: turmas.length 
+      });
+      
+    } catch (error: any) {
+      logError('Erro inesperado ao listar turmas do professor logado', 'controller', error);
       return res.status(500).json({ 
         mensagem: 'Erro interno do servidor.',
         detalhes: error.message 

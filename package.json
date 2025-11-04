@@ -16,7 +16,11 @@
     "migrate:fresh": "knex migrate:rollback --all && knex migrate:latest --verbose",
     "make:migration": "knex migrate:make",
     "db:setup": "node scripts/setup-db.js",
-    "db:reset": "knex migrate:rollback --all && npm run db:setup"
+    "db:reset": "knex migrate:rollback --all && npm run db:setup",
+    "create:admin": "node scripts/create-admin-user.js",
+    "seed:run": "knex seed:run",
+    "seed:reset": "knex seed:run --specific=001_sample_data.js",
+    "db:fresh": "npm run db:reset && npm run seed:run"
   },
   "keywords": [],
   "author": "",
