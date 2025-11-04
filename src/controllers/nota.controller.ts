@@ -191,7 +191,7 @@ export class NotaController {
         }
 
         const vinculacao = await require('../model/turmaDisciplinaProfessor.model').buscarPorId(atividade.turma_disciplina_professor_id);
-        if (!vinculacao || vinculacao.professor_id !== usuario.professor_id) {
+        if (!vinculacao || vinculacao.professor_id !== usuario.usuario_id) {
           return res.status(403).json({
             success: false,
             message: 'Acesso negado: você só pode criar notas para suas próprias atividades'
@@ -301,7 +301,7 @@ export class NotaController {
         }
 
         const vinculacao = await require('../model/turmaDisciplinaProfessor.model').buscarPorId(atividade.turma_disciplina_professor_id);
-        if (!vinculacao || vinculacao.professor_id !== usuario.professor_id) {
+        if (!vinculacao || vinculacao.professor_id !== usuario.usuario_id) {
           return res.status(403).json({
             success: false,
             message: 'Acesso negado: você só pode lançar notas para suas próprias atividades'
@@ -372,7 +372,7 @@ export class NotaController {
         const atividade = await require('../model/atividade.model').buscarPorId(nota.atividade_id);
         const vinculacao = await require('../model/turmaDisciplinaProfessor.model').buscarPorId(atividade.turma_disciplina_professor_id);
         
-        if (!vinculacao || vinculacao.professor_id !== usuario.professor_id) {
+        if (!vinculacao || vinculacao.professor_id !== usuario.usuario_id) {
           return res.status(403).json({
             success: false,
             message: 'Acesso negado: você só pode atualizar notas de suas próprias atividades'
@@ -433,7 +433,7 @@ export class NotaController {
         const atividade = await require('../model/atividade.model').buscarPorId(nota.atividade_id);
         const vinculacao = await require('../model/turmaDisciplinaProfessor.model').buscarPorId(atividade.turma_disciplina_professor_id);
         
-        if (!vinculacao || vinculacao.professor_id !== usuario.professor_id) {
+        if (!vinculacao || vinculacao.professor_id !== usuario.usuario_id) {
           return res.status(403).json({
             success: false,
             message: 'Acesso negado: você só pode deletar notas de suas próprias atividades'
