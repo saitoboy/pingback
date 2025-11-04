@@ -11,6 +11,9 @@ router.use(autenticar);
 // Rota para professor buscar seu próprio perfil
 router.get('/me', ProfessorController.buscarMeuPerfil);
 
+// Rota para professor buscar suas próprias turmas
+router.get('/minhas-turmas', ProfessorController.listarMinhasTurmas);
+
 // Rotas que precisam de permissão de ADMIN ou SECRETARIO
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.criar);
 router.get('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), ProfessorController.listar);
