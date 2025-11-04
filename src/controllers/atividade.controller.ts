@@ -236,7 +236,7 @@ export class AtividadeController {
 
       // Verificar permissões: professor só pode atualizar suas próprias atividades
       if (usuario.tipo_usuario_id === TipoUsuario.PROFESSOR) {
-        const temAcesso = await AtividadeService.verificarAcessoProfessor(atividade_id, usuario.professor_id);
+        const temAcesso = await AtividadeService.verificarAcessoProfessor(atividade_id, usuario.usuario_id);
         if (!temAcesso) {
           res.status(403).json({
             success: false,
@@ -308,7 +308,7 @@ export class AtividadeController {
       }
 
       if (usuario.tipo_usuario_id === TipoUsuario.PROFESSOR) {
-        const temAcesso = await AtividadeService.verificarAcessoProfessor(atividade_id, usuario.professor_id);
+        const temAcesso = await AtividadeService.verificarAcessoProfessor(atividade_id, usuario.usuario_id);
         if (!temAcesso) {
           res.status(403).json({
             success: false,
@@ -371,7 +371,7 @@ export class AtividadeController {
       logger.info(`📝 Controller: Buscando estatísticas do professor ${professor_id}`, 'atividade');
 
       // Verificar permissões: professor só pode ver suas próprias estatísticas
-      if (usuario.tipo_usuario_id === TipoUsuario.PROFESSOR && usuario.professor_id !== professor_id) {
+      if (usuario.tipo_usuario_id === TipoUsuario.PROFESSOR && usuario.usuario_id !== professor_id) {
         res.status(403).json({
           success: false,
           message: 'Você só pode ver suas próprias estatísticas'

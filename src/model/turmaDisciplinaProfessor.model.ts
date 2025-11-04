@@ -99,8 +99,7 @@ export const buscarComDetalhes = async (id?: string): Promise<any> => {
     .from(`${tabela} as tdp`)
     .join('turma as t', 'tdp.turma_id', 't.turma_id')
     .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
-    .join('professor as p', 'tdp.professor_id', 'p.professor_id')
-    .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
+    .join('usuario as u', 'tdp.professor_id', 'u.usuario_id')
     .orderBy('tdp.created_at', 'desc');
 
   if (id) {
