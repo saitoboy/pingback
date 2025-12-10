@@ -49,6 +49,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     'http://localhost:3000',
     'http://localhost:5174',
     'https://pinguinho-pingfront.hvko68.easypanel.host',
+    'https://pinguinho-pingfront-test.hvko68.easypanel.host',
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN
   ].filter(Boolean);
