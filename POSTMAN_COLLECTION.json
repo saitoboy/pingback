@@ -702,6 +702,39 @@
       ]
     },
     {
+      "name": "📧 Contato",
+      "item": [
+        {
+          "name": "Enviar Mensagem de Contato",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva\",\n  \"telefone\": \"(32) 98857-4727\",\n  \"email\": \"joao.silva@email.com\",\n  \"mensagem\": \"Olá! Gostaria de agendar uma visita para conhecer a escola. Tenho interesse em matricular meu filho de 5 anos na Educação Infantil.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contato",
+              "host": ["{{baseUrl}}"],
+              "path": ["contato"]
+            },
+            "description": "Envia uma mensagem de contato através do formulário da landing page. Esta rota é pública e não requer autenticação.\n\n**Campos obrigatórios:**\n- `nome`: Nome completo do remetente\n- `telefone`: Telefone para contato\n- `email`: Email válido do remetente\n- `mensagem`: Mensagem do contato"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "🔧 Utilitários",
       "item": [
         {
