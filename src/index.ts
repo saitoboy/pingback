@@ -39,40 +39,46 @@ const app = express();
 
 logInfo('🚀 Inicializando Sistema Escolar Pinguinho API', 'server');
 
-// Middleware CORS manual - DEVE vir ANTES de qualquer outra coisa
+// Middleware para tratar preflight requests (OPTIONS) ANTES de tudo
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  
-  // Lista de origens permitidas
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5174',
-    'https://pinguinho-pingfront.hvko68.easypanel.host',
-    'https://pinguinho-pingfront-test.hvko68.easypanel.host',
-    process.env.FRONTEND_URL,
-    process.env.CORS_ORIGIN
-  ].filter(Boolean);
-
-  // Se a origem está na lista ou se não há origem (requests diretos), permite
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  } else {
-    // Em produção, permite de qualquer forma mas loga
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    logInfo(`⚠️ Origem não configurada permitida: ${origin}`, 'server');
-  }
-
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 horas
-
-  // Se for um preflight request (OPTIONS), responde imediatamente
   if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    
+    // Lista de origens permitidas
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      'https://pinguinho-pingfront.hvko68.easypanel.host',
+      'https://pinguinho-pingfront-test.hvko68.easypanel.host',
+      process.env.FRONTEND_URL,
+      process.env.CORS_ORIGIN
+    ].filter(Boolean);
+
+    // Se CORS_ORIGIN contém múltiplas origens, adiciona cada uma
+    if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes(',')) {
+      const multipleOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+      allowedOrigins.push(...multipleOrigins);
+    }
+
+    // Define a origem permitida
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else if (origin) {
+      // Permite mesmo se não estiver na lista (para produção)
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      logInfo(`⚠️ CORS Preflight: Origem permitida: ${origin}`, 'server');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    
     return res.status(204).end();
   }
-
   next();
 });
 
@@ -80,14 +86,52 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Configuração adicional do CORS usando o pacote cors
+// Configuração do CORS usando o pacote cors
+// DEVE vir ANTES das rotas mas DEPOIS do express.json
 app.use(cors({
-  origin: true, // Aceita qualquer origem (já controlamos acima)
+  origin: (origin, callback) => {
+    // Lista de origens permitidas
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      'https://pinguinho-pingfront.hvko68.easypanel.host',
+      'https://pinguinho-pingfront-test.hvko68.easypanel.host',
+      process.env.FRONTEND_URL,
+      process.env.CORS_ORIGIN
+    ].filter(Boolean);
+
+    // Se CORS_ORIGIN contém múltiplas origens separadas por vírgula, adiciona cada uma
+    if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes(',')) {
+      const multipleOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+      allowedOrigins.push(...multipleOrigins);
+    }
+
+    // Permite requisições sem origem (mobile apps, Postman, etc)
+    if (!origin) {
+      logInfo('🌐 CORS: Requisição sem origem permitida', 'server');
+      return callback(null, true);
+    }
+
+    // Verifica se a origem está na lista (comparação exata)
+    const isAllowed = allowedOrigins.includes(origin);
+
+    if (isAllowed) {
+      logDebug(`✅ CORS: Origem permitida: ${origin}`, 'server');
+      callback(null, true);
+    } else {
+      // Em produção, permite mas loga para debug
+      logInfo(`⚠️ CORS: Origem não configurada, mas permitida: ${origin}`, 'server');
+      logInfo(`📋 CORS: Origens configuradas: ${allowedOrigins.join(', ')}`, 'server');
+      callback(null, true);
+    }
+  },
   credentials: true,
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  preflightContinue: false
 }));
 
 logSuccess('✅ Middlewares básicos configurados', 'server');
