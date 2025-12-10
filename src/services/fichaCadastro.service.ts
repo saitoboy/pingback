@@ -212,6 +212,53 @@ class FichaCadastroService {
   }
 
   /**
+   * Lista todas as fichas de cadastro
+   * Retorna uma lista resumida com informações principais de cada ficha
+   */
+  static async listarTodasFichas(): Promise<FichaCadastroResposta[]> {
+    try {
+      logger.info('🔍 Listando todas as fichas de cadastro', 'ficha-cadastro');
+
+      // Buscar todas as matrículas
+      const matriculas = await MatriculaAlunoModel.listarMatriculas();
+      
+      if (matriculas.length === 0) {
+        logger.info('⚠️ Nenhuma matrícula encontrada', 'ficha-cadastro');
+        return [];
+      }
+
+      logger.info(`📋 Encontradas ${matriculas.length} matrículas, buscando fichas completas...`, 'ficha-cadastro');
+
+      // Para cada matrícula, buscar a ficha completa
+      const fichas: FichaCadastroResposta[] = [];
+      
+      for (const matricula of matriculas) {
+        try {
+          // Usar o método existente para buscar por RA
+          const ficha = await this.buscarFichaPorRA(matricula.ra);
+          if (ficha) {
+            fichas.push(ficha);
+          }
+        } catch (error) {
+          // Se houver erro ao buscar uma ficha específica, logar mas continuar
+          logger.warning(`⚠️ Erro ao buscar ficha para RA ${matricula.ra}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'ficha-cadastro');
+        }
+      }
+
+      logger.success(`✅ ${fichas.length} fichas de cadastro listadas com sucesso`, 'ficha-cadastro');
+      return fichas;
+
+    } catch (error) {
+      logger.error('❌ Erro ao listar fichas de cadastro', 'ficha-cadastro', error);
+      
+      if (error instanceof Error) {
+        throw new Error(`Erro ao listar fichas de cadastro: ${error.message}`);
+      }
+      throw new Error('Erro interno ao listar fichas de cadastro');
+    }
+  }
+
+  /**
    * Validações básicas da ficha antes do processamento
    */
   static validarFichaCadastro(fichaCadastro: FichaCadastroCompleta): string[] {

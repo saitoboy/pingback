@@ -90,6 +90,33 @@ class FichaCadastroController {
   }
 
   /**
+   * Lista todas as fichas de cadastro
+   * Retorna uma lista com todas as fichas cadastradas
+   */
+  static async listarTodasFichas(req: Request, res: Response): Promise<void> {
+    try {
+      logger.info('📋 Listando todas as fichas de cadastro', 'ficha-cadastro');
+      
+      const fichas = await FichaCadastroService.listarTodasFichas();
+      
+      logger.success(`✅ ${fichas.length} fichas de cadastro encontradas`, 'ficha-cadastro');
+      
+      res.status(200).json({
+        sucesso: true,
+        mensagem: `${fichas.length} fichas de cadastro encontradas`,
+        dados: fichas,
+        total: fichas.length
+      });
+    } catch (error) {
+      logger.error('❌ Erro ao listar fichas de cadastro', 'ficha-cadastro', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
+
+  /**
    * Lista modelos/templates para auxiliar no preenchimento da ficha
    */
   static async obterModeloFicha(req: Request, res: Response): Promise<void> {
