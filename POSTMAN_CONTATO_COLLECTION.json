@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "📧 Contato - Sistema Escolar Pinguinho",
+    "description": "Collection para testar o envio de emails do formulário de contato",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "📧 Enviar Mensagem de Contato",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"João Silva\",\n  \"telefone\": \"(32) 98857-4727\",\n  \"email\": \"joao.silva@email.com\",\n  \"mensagem\": \"Olá! Gostaria de agendar uma visita para conhecer a escola. Tenho interesse em matricular meu filho de 5 anos na Educação Infantil.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contato",
+          "host": ["{{baseUrl}}"],
+          "path": ["contato"]
+        },
+        "description": "Envia uma mensagem de contato através do formulário da landing page. Esta rota é pública e não requer autenticação.\n\n**Campos obrigatórios:**\n- `nome`: Nome completo do remetente\n- `telefone`: Telefone para contato\n- `email`: Email válido do remetente\n- `mensagem`: Mensagem do contato\n\n**Resposta de sucesso (200):**\n```json\n{\n  \"mensagem\": \"Mensagem enviada com sucesso! Entraremos em contato em breve.\",\n  \"status\": \"sucesso\"\n}\n```\n\n**Resposta de erro (400):**\n```json\n{\n  \"mensagem\": \"Campos obrigatórios ausentes: nome, email\"\n}\n```\n\n**Resposta de erro (500):**\n```json\n{\n  \"mensagem\": \"Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato pelo telefone.\",\n  \"detalhes\": \"Detalhes do erro (apenas em desenvolvimento)\"\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "📧 Enviar Mensagem - Exemplo Mínimo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Maria Santos\",\n  \"telefone\": \"(32) 99999-9999\",\n  \"email\": \"maria@email.com\",\n  \"mensagem\": \"Gostaria de mais informações sobre a escola.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contato",
+          "host": ["{{baseUrl}}"],
+          "path": ["contato"]
+        },
+        "description": "Exemplo com dados mínimos para teste rápido."
+      },
+      "response": []
+    },
+    {
+      "name": "📧 Enviar Mensagem - Teste de Validação",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"\",\n  \"telefone\": \"\",\n  \"email\": \"email-invalido\",\n  \"mensagem\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contato",
+          "host": ["{{baseUrl}}"],
+          "path": ["contato"]
+        },
+        "description": "Teste para verificar as validações do endpoint. Deve retornar erro 400."
+      },
+      "response": []
+    }
+  ]
+}
+

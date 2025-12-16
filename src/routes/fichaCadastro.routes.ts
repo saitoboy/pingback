@@ -8,6 +8,9 @@ const router = Router();
 // Todas as rotas precisam de autenticação
 router.use(autenticar);
 
+// Rota para listar todas as fichas (todos os usuários autenticados podem consultar)
+router.get('/', FichaCadastroController.listarTodasFichas);
+
 // Rota para obter modelo/template da ficha (todos os usuários autenticados podem ver)
 router.get('/modelo', FichaCadastroController.obterModeloFicha);
 

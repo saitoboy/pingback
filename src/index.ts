@@ -33,41 +33,73 @@ import historicoEscolarRoutes from './routes/historicoEscolar.routes';
 import usuarioRoutes from './routes/usuario.routes';
 import usuarioTipoRoutes from './routes/usuarioTipo.routes';
 import alocacaoProfessorRoutes from './routes/alocacaoProfessor.routes';
+import contatoRoutes from './routes/contato.routes';
 
 const app = express();
 
 logInfo('🚀 Inicializando Sistema Escolar Pinguinho API', 'server');
 
-// Middleware CORS manual - DEVE vir ANTES de qualquer outra coisa
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  
-  // Lista de origens permitidas
-  const allowedOrigins = [
+// Função para obter lista de origens permitidas
+const getAllowedOrigins = (): string[] => {
+  const origins = [
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:5174',
     'https://pinguinho-pingfront.hvko68.easypanel.host',
+    'https://pinguinho-pingfront-test.hvko68.easypanel.host',
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN
   ].filter(Boolean);
 
-  // Se a origem está na lista ou se não há origem (requests diretos), permite
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  } else {
-    // Em produção, permite de qualquer forma mas loga
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    logInfo(`⚠️ Origem não configurada permitida: ${origin}`, 'server');
+  // Se CORS_ORIGIN contém múltiplas origens, adiciona cada uma
+  if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes(',')) {
+    const multipleOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+    origins.push(...multipleOrigins);
   }
 
+  return origins;
+};
+
+// Middleware CORS global - DEVE ser o PRIMEIRO middleware
+// IMPORTANTE: Este middleware deve processar ANTES de qualquer outro
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = getAllowedOrigins();
+
+  // Log detalhado para debug
+  logInfo(`🌐 CORS Request: ${req.method} ${req.path}`, 'server');
+  logInfo(`📍 Origin recebida: ${origin || 'NENHUMA'}`, 'server');
+  logInfo(`📋 Origens permitidas: ${allowedOrigins.join(', ')}`, 'server');
+
+  // Determina a origem permitida
+  // IMPORTANTE: Com credentials: true, NÃO pode usar '*', deve ser a origem exata
+  let allowedOrigin: string;
+  if (origin && allowedOrigins.includes(origin)) {
+    allowedOrigin = origin;
+    logInfo(`✅ CORS: Origem permitida da lista: ${origin}`, 'server');
+  } else if (origin) {
+    // Em produção, permite a origem mesmo se não estiver na lista (para flexibilidade)
+    allowedOrigin = origin;
+    logInfo(`⚠️ CORS: Origem não configurada, mas PERMITIDA: ${origin}`, 'server');
+  } else {
+    // Se não há origem, permite qualquer (para requisições diretas como Postman)
+    allowedOrigin = '*';
+    logInfo(`🌐 CORS: Sem origem, usando '*'`, 'server');
+  }
+
+  // Define TODOS os headers CORS em TODAS as requisições
+  // IMPORTANTE: Estes headers devem estar presentes em TODAS as respostas
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 horas
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Vary', 'Origin'); // Importante para cache do navegador
 
-  // Se for um preflight request (OPTIONS), responde imediatamente
+  // Se for preflight (OPTIONS), responde imediatamente SEM passar para outros middlewares
   if (req.method === 'OPTIONS') {
+    logInfo(`✅ CORS Preflight OPTIONS respondido para: ${origin || 'no origin'}`, 'server');
+    logInfo(`📤 Headers enviados: Access-Control-Allow-Origin=${allowedOrigin}`, 'server');
     return res.status(204).end();
   }
 
@@ -78,14 +110,25 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Configuração adicional do CORS usando o pacote cors
+// Configuração adicional do CORS usando o pacote cors como backup
+// O middleware manual acima já trata tudo, mas isso garante compatibilidade
 app.use(cors({
-  origin: true, // Aceita qualquer origem (já controlamos acima)
+  origin: (origin, callback) => {
+    const allowedOrigins = getAllowedOrigins();
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // Permite qualquer origem em produção (já controlado pelo middleware manual)
+      callback(null, true);
+    }
+  },
   credentials: true,
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  preflightContinue: false
 }));
 
 logSuccess('✅ Middlewares básicos configurados', 'server');
@@ -140,6 +183,32 @@ app.get("/", async (req: Request, res: Response) => {
     });
   } catch (e: any) {
     logError(`❌ Erro na rota raiz: ${e.message}`, 'route');
+    res.status(500).json({
+      status: 'erro',
+      mensagem: e.message || 'Erro interno do servidor'
+    });
+  }
+});
+
+// Endpoint de teste de CORS
+app.get("/cors-test", async (req: Request, res: Response) => {
+  try {
+    const origin = req.headers.origin;
+    logInfo(`🧪 Teste de CORS - Origin: ${origin || 'none'}`, 'route');
+    
+    res.status(200).json({
+      status: 'sucesso',
+      mensagem: 'CORS está funcionando corretamente',
+      origin: origin || 'nenhuma origem detectada',
+      headers: {
+        'access-control-allow-origin': res.getHeader('Access-Control-Allow-Origin'),
+        'access-control-allow-methods': res.getHeader('Access-Control-Allow-Methods'),
+        'access-control-allow-credentials': res.getHeader('Access-Control-Allow-Credentials')
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (e: any) {
+    logError(`❌ Erro no teste de CORS: ${e.message}`, 'route');
     res.status(500).json({
       status: 'erro',
       mensagem: e.message || 'Erro interno do servidor'
@@ -258,6 +327,9 @@ logDebug('🏷️ Rotas de tipos de usuário registradas', 'route');
 
 app.use('/alocacao-professor', alocacaoProfessorRoutes);
 logDebug('👩‍🏫 Rotas de alocação de professores registradas', 'route');
+
+app.use('/contato', contatoRoutes);
+logDebug('📧 Rotas de contato registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
