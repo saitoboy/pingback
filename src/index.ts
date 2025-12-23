@@ -34,6 +34,7 @@ import usuarioRoutes from './routes/usuario.routes';
 import usuarioTipoRoutes from './routes/usuarioTipo.routes';
 import alocacaoProfessorRoutes from './routes/alocacaoProfessor.routes';
 import contatoRoutes from './routes/contato.routes';
+import gradeHorarioProfessorRoutes from './routes/gradeHorarioProfessor.routes';
 
 const app = express();
 
@@ -330,6 +331,9 @@ logDebug('👩‍🏫 Rotas de alocação de professores registradas', 'route');
 
 app.use('/contato', contatoRoutes);
 logDebug('📧 Rotas de contato registradas', 'route');
+
+app.use('/grade-horario', gradeHorarioProfessorRoutes);
+logDebug('📅 Rotas de grade de horários registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 

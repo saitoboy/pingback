@@ -87,6 +87,34 @@ router.post('/lote',
   FrequenciaController.registrarFrequenciaLote
 );
 
+// GET /api/frequencia/professor/:professor_id/turma/:turma_id/data/:data - Buscar frequências por professor, turma e data
+// Permissões: ADMIN, SECRETARIO, PROFESSOR
+router.get('/professor/:professor_id/turma/:turma_id/data/:data', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
+  FrequenciaController.buscarPorProfessorTurmaEData
+);
+
+// POST /api/frequencia/lote-por-professor-turma-data - Registrar frequência em lote por professor, turma e data
+// Permissões: ADMIN, SECRETARIO, PROFESSOR
+router.post('/lote-por-professor-turma-data', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
+  FrequenciaController.registrarFrequenciaLotePorProfessorTurmaEData
+);
+
+// GET /api/frequencia/data/:vinculacaoId/:data - Buscar frequências por data e vinculação (DEPRECATED - manter para compatibilidade)
+// Permissões: ADMIN, SECRETARIO, PROFESSOR
+router.get('/data/:vinculacaoId/:data', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
+  FrequenciaController.buscarPorDataEVinculacao
+);
+
+// POST /api/frequencia/lote-por-data - Registrar frequência em lote por data e vinculação (DEPRECATED - manter para compatibilidade)
+// Permissões: ADMIN, SECRETARIO, PROFESSOR
+router.post('/lote-por-data', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
+  FrequenciaController.registrarFrequenciaLotePorData
+);
+
 // PUT /api/frequencia/:frequencia_id - Atualizar frequência
 // Permissões: ADMIN, SECRETARIO, PROFESSOR
 router.put('/:frequencia_id', 

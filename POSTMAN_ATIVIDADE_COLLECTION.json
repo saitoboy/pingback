@@ -1,0 +1,542 @@
+{
+  "info": {
+    "name": "📝 Avaliação (Atividade) - Sistema Escolar Pinguinho",
+    "description": "Coleção completa para testar todos os endpoints de Avaliação/Atividade\n\n## 🔐 Autenticação\n\n1. Primeiro, faça login em: POST /auth/login\n2. Copie o token retornado\n3. Configure a variável {{token}} na coleção\n4. Todas as requisições usarão automaticamente o token\n\n## 📝 Variáveis da Coleção\n\n- baseUrl: http://localhost:3003 (ou sua URL de produção)\n- token: Token JWT obtido no login\n- atividade_id: ID da atividade (UUID)\n- turma_disciplina_professor_id: ID da vinculação turma/disciplina/professor\n- periodo_letivo_id: ID do período letivo\n- aula_id: ID da aula (UUID) - Opcional\n- data_aula: Data da aula no formato YYYY-MM-DD\n\n## 🎯 Endpoints Principais\n\n✅ **Buscar por Data e Vinculação** (Recomendado para calendário):\n- GET /atividade/data/{vinculacaoId}/{data}\n\n✅ **Criar Avaliação** (Novo modelo com data):\n- POST /atividade (com turma_disciplina_professor_id e data_aula)\n\n✅ **Atualizar Avaliação**:\n- PUT /atividade/:atividade_id\n\n✅ **Deletar Avaliação**:\n- DELETE /atividade/:atividade_id",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Token JWT obtido no login. Configure após fazer login."
+    },
+    {
+      "key": "atividade_id",
+      "value": "",
+      "type": "string",
+      "description": "ID da atividade (UUID)"
+    },
+    {
+      "key": "turma_disciplina_professor_id",
+      "value": "",
+      "type": "string",
+      "description": "ID da vinculação turma/disciplina/professor (UUID)"
+    },
+    {
+      "key": "periodo_letivo_id",
+      "value": "",
+      "type": "string",
+      "description": "ID do período letivo (UUID)"
+    },
+    {
+      "key": "aula_id",
+      "value": "",
+      "type": "string",
+      "description": "ID da aula (UUID) - Opcional"
+    },
+    {
+      "key": "data_aula",
+      "value": "2025-12-23",
+      "type": "string",
+      "description": "Data da aula no formato YYYY-MM-DD"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('token', response.token);",
+                  "        console.log('✅ Token salvo automaticamente na variável {{token}}');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"professor@escola.com\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Faça login para obter o token JWT. O token será salvo automaticamente na variável {{token}}."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Listar e Buscar",
+      "item": [
+        {
+          "name": "Listar Todas as Atividades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade"]
+            },
+            "description": "Lista todas as atividades do sistema."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividade por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/:atividade_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", ":atividade_id"],
+              "variable": [
+                {
+                  "key": "atividade_id",
+                  "value": "{{atividade_id}}",
+                  "description": "ID da atividade"
+                }
+              ]
+            },
+            "description": "Busca uma atividade específica pelo seu ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividades por Aula",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/aula/:aula_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "aula", ":aula_id"],
+              "variable": [
+                {
+                  "key": "aula_id",
+                  "value": "{{aula_id}}",
+                  "description": "ID da aula"
+                }
+              ]
+            },
+            "description": "Busca todas as atividades de uma aula específica."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividades por Vinculação",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/vinculacao/:turma_disciplina_professor_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "vinculacao", ":turma_disciplina_professor_id"],
+              "variable": [
+                {
+                  "key": "turma_disciplina_professor_id",
+                  "value": "{{turma_disciplina_professor_id}}",
+                  "description": "ID da vinculação"
+                }
+              ]
+            },
+            "description": "Busca todas as atividades de uma vinculação específica."
+          },
+          "response": []
+        },
+        {
+          "name": "✅ Buscar Atividades por Data e Vinculação (Recomendado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/data/:vinculacaoId/:data",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "data", ":vinculacaoId", ":data"],
+              "variable": [
+                {
+                  "key": "vinculacaoId",
+                  "value": "{{turma_disciplina_professor_id}}",
+                  "description": "ID da vinculação turma/disciplina/professor"
+                },
+                {
+                  "key": "data",
+                  "value": "{{data_aula}}",
+                  "description": "Data no formato YYYY-MM-DD (ex: 2025-12-23)"
+                }
+              ]
+            },
+            "description": "Busca atividades de uma vinculação específica em uma data específica.\n\nEste é o endpoint usado pelo calendário para buscar atividades do dia.\n\n**Parâmetros:**\n- vinculacaoId: ID da vinculação (turma_disciplina_professor_id)\n- data: Data no formato YYYY-MM-DD"
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividades por Período Letivo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/periodo/:periodo_letivo_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "periodo", ":periodo_letivo_id"],
+              "variable": [
+                {
+                  "key": "periodo_letivo_id",
+                  "value": "{{periodo_letivo_id}}",
+                  "description": "ID do período letivo"
+                }
+              ]
+            },
+            "description": "Busca todas as atividades de um período letivo específico."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividades Avaliativas (Que Valem Nota)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/avaliativas?turma_disciplina_professor_id={{turma_disciplina_professor_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "avaliativas"],
+              "query": [
+                {
+                  "key": "turma_disciplina_professor_id",
+                  "value": "{{turma_disciplina_professor_id}}",
+                  "description": "ID da vinculação (opcional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Busca apenas as atividades que valem nota (vale_nota = true)."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Atividade com Detalhes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/detalhes/:atividade_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "detalhes", ":atividade_id"],
+              "variable": [
+                {
+                  "key": "atividade_id",
+                  "value": "{{atividade_id}}",
+                  "description": "ID da atividade"
+                }
+              ]
+            },
+            "description": "Busca uma atividade com informações detalhadas (incluindo notas dos alunos, etc)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "➕ Criar Avaliação",
+      "item": [
+        {
+          "name": "✅ Criar Avaliação com Data (Novo Modelo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.atividade_id) {",
+                  "        pm.collectionVariables.set('atividade_id', response.data.atividade_id);",
+                  "        console.log('✅ ID da atividade salvo: ' + response.data.atividade_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"turma_disciplina_professor_id\": \"{{turma_disciplina_professor_id}}\",\n  \"data_aula\": \"{{data_aula}}\",\n  \"titulo\": \"Prova Bimestral - Matemática\",\n  \"descricao\": \"Avaliação sobre equações quadráticas e funções\",\n  \"peso\": 3,\n  \"vale_nota\": true,\n  \"periodo_letivo_id\": \"{{periodo_letivo_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/atividade",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade"]
+            },
+            "description": "Cria uma nova avaliação/atividade vinculada a uma turma/disciplina/professor e data.\n\n**Este é o modelo recomendado** usado pelo calendário.\n\n**Campos obrigatórios:**\n- turma_disciplina_professor_id: ID da vinculação\n- data_aula: Data no formato YYYY-MM-DD\n- titulo: Título da avaliação\n- descricao: Descrição detalhada\n- peso: Peso da avaliação (número positivo)\n- vale_nota: true/false\n- periodo_letivo_id: ID do período letivo\n\n**Permissões:** ADMIN e PROFESSOR"
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Avaliação com Aula ID (Modelo Antigo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aula_id\": \"{{aula_id}}\",\n  \"turma_disciplina_professor_id\": \"{{turma_disciplina_professor_id}}\",\n  \"titulo\": \"Prova Bimestral - Matemática\",\n  \"descricao\": \"Avaliação sobre equações quadráticas e funções\",\n  \"peso\": 3,\n  \"vale_nota\": true,\n  \"periodo_letivo_id\": \"{{periodo_letivo_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/atividade",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade"]
+            },
+            "description": "Cria uma nova avaliação/atividade vinculada a uma aula específica.\n\n**Modelo antigo** - mantido para compatibilidade.\n\n**Campos obrigatórios:**\n- aula_id: ID da aula (ou data_aula + turma_disciplina_professor_id)\n- turma_disciplina_professor_id: ID da vinculação\n- titulo: Título da avaliação\n- descricao: Descrição detalhada\n- peso: Peso da avaliação\n- vale_nota: true/false\n- periodo_letivo_id: ID do período letivo\n\n**Permissões:** ADMIN e PROFESSOR"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✏️ Atualizar Avaliação",
+      "item": [
+        {
+          "name": "Atualizar Avaliação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Avaliação atualizada com sucesso');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Prova Bimestral - Matemática (Atualizada)\",\n  \"descricao\": \"Avaliação sobre equações quadráticas, funções e geometria\",\n  \"peso\": 4,\n  \"vale_nota\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/atividade/:atividade_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", ":atividade_id"],
+              "variable": [
+                {
+                  "key": "atividade_id",
+                  "value": "{{atividade_id}}",
+                  "description": "ID da atividade"
+                }
+              ]
+            },
+            "description": "Atualiza uma avaliação/atividade existente.\n\n**Campos opcionais:**\n- titulo: Novo título\n- descricao: Nova descrição\n- peso: Novo peso\n- vale_nota: Novo valor para vale_nota\n\n**Permissões:** ADMIN e PROFESSOR (professor só pode atualizar suas próprias atividades)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🗑️ Deletar Avaliação",
+      "item": [
+        {
+          "name": "Deletar Avaliação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 204) {",
+                  "    console.log('✅ Avaliação deletada com sucesso');",
+                  "    pm.collectionVariables.unset('atividade_id');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/:atividade_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", ":atividade_id"],
+              "variable": [
+                {
+                  "key": "atividade_id",
+                  "value": "{{atividade_id}}",
+                  "description": "ID da atividade"
+                }
+              ]
+            },
+            "description": "Deleta uma avaliação/atividade.\n\n**Permissões:** ADMIN e PROFESSOR (professor só pode deletar suas próprias atividades)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Estatísticas",
+      "item": [
+        {
+          "name": "Estatísticas por Professor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/atividade/estatisticas/professor/:professor_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["atividade", "estatisticas", "professor", ":professor_id"],
+              "variable": [
+                {
+                  "key": "professor_id",
+                  "value": "",
+                  "description": "ID do professor (usuario_id)"
+                }
+              ]
+            },
+            "description": "Busca estatísticas de atividades de um professor específico.\n\n**Permissões:** ADMIN e PROFESSOR (professor só pode ver suas próprias estatísticas)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Verificar se o token está configurado",
+          "if (!pm.collectionVariables.get('token')) {",
+          "    console.warn('⚠️ Token não configurado. Faça login primeiro.');",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+

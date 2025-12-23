@@ -211,9 +211,21 @@ export interface Aula {
 
 export interface ConteudoAula {
   conteudo_aula_id: string;
-  aula_id: string;
+  aula_id?: string; // Opcional para compatibilidade
+  data_aula: Date; // Nova: data do conteúdo
+  turma_disciplina_professor_id: string; // Nova: vinculação
   descricao: string;
   conteudo: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface GradeHorarioProfessor {
+  grade_horario_id: string;
+  turma_disciplina_professor_id: string;
+  dia_semana: number; // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+  hora_inicio: string;
+  hora_fim: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -233,7 +245,8 @@ export interface Atividade {
   peso: number;
   vale_nota: boolean;
   periodo_letivo_id: string;
-  aula_id: string;
+  aula_id?: string; // Opcional para compatibilidade
+  data_aula?: Date; // Nova: data da atividade
   turma_disciplina_professor_id: string;
   created_at: Date;
   updated_at: Date;
@@ -250,7 +263,10 @@ export interface Nota {
 
 export interface Frequencia {
   frequencia_id: string;
-  aula_id: string;
+  aula_id?: string; // Opcional para compatibilidade
+  data_aula: Date; // Data da aula
+  professor_id: string; // ID do professor
+  turma_id: string; // ID da turma
   matricula_aluno_id: string;
   presenca: boolean;
   created_at: Date;

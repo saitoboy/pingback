@@ -394,4 +394,26 @@ export class AtividadeController {
       });
     }
   }
+
+  // NOVO: Buscar atividades por data e vinculação
+  static async buscarPorDataEVinculacao(req: Request, res: Response): Promise<void> {
+    try {
+      const { vinculacaoId, data } = req.params;
+      logger.info(`📝 Controller: Buscando atividades da vinculação ${vinculacaoId} e data ${data}`, 'atividade');
+      
+      const atividades = await AtividadeService.buscarPorDataEVinculacao(vinculacaoId, data);
+      
+      res.status(200).json({
+        success: true,
+        message: `${atividades.length} atividades encontradas para a data`,
+        data: atividades
+      });
+    } catch (error) {
+      logger.error('❌ Controller: Erro ao buscar atividades por data e vinculação', 'atividade', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
 }

@@ -107,12 +107,13 @@ class ConteudoAulaController {
    */
   static async criarConteudo(req: Request, res: Response): Promise<void> {
     try {
-      const { aula_id, descricao, conteudo } = req.body;
+      const { aula_id, turma_disciplina_professor_id, data_aula, descricao, conteudo } = req.body;
 
-      if (!aula_id || !descricao || !conteudo) {
+      // Validação: precisa ter aula_id OU (turma_disciplina_professor_id + data_aula)
+      if ((!aula_id && (!turma_disciplina_professor_id || !data_aula)) || !descricao || !conteudo) {
         res.status(400).json({
           sucesso: false,
-          mensagem: 'ID da aula, descrição e conteúdo são obrigatórios'
+          mensagem: 'É necessário fornecer: (aula_id) OU (turma_disciplina_professor_id + data_aula), descrição e conteúdo'
         });
         return;
       }
@@ -121,6 +122,8 @@ class ConteudoAulaController {
 
       const novoConteudo = await ConteudoAulaService.criarConteudo({
         aula_id,
+        turma_disciplina_professor_id,
+        data_aula,
         descricao,
         conteudo
       });
@@ -138,6 +141,41 @@ class ConteudoAulaController {
          error.message.includes('não encontrada')) ? 400 : 500;
       
       res.status(statusCode).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
+
+  /**
+   * Buscar conteúdos por data e vinculação
+   * GET /conteudo-aula/data/:vinculacaoId/:data
+   */
+  static async buscarConteudosPorDataEVinculacao(req: Request, res: Response): Promise<void> {
+    try {
+      const { vinculacaoId, data } = req.params;
+      
+      if (!vinculacaoId || !data) {
+        res.status(400).json({
+          sucesso: false,
+          mensagem: 'ID da vinculação e data são obrigatórios'
+        });
+        return;
+      }
+
+      logger.info(`🔍 Requisição para buscar conteúdos da vinculação ${vinculacaoId} e data ${data}`, 'conteudo-aula');
+      
+      const conteudos = await ConteudoAulaService.buscarConteudosPorDataEVinculacao(vinculacaoId, data);
+
+      res.status(200).json({
+        sucesso: true,
+        mensagem: 'Conteúdos da data encontrados com sucesso',
+        dados: conteudos,
+        total: conteudos.length
+      });
+    } catch (error) {
+      logger.error('❌ Erro no controller ao buscar conteúdos por data e vinculação', 'conteudo-aula', error);
+      res.status(500).json({
         sucesso: false,
         mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
       });

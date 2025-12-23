@@ -17,6 +17,9 @@ router.get('/:id', ConteudoAulaController.buscarConteudoPorId);
 // GET /conteudo-aula/aula/:aula_id - Buscar por aula (todos podem ver)
 router.get('/aula/:aula_id', ConteudoAulaController.buscarConteudosPorAula);
 
+// GET /conteudo-aula/data/:vinculacaoId/:data - Buscar conteúdos por data e vinculação
+router.get('/data/:vinculacaoId/:data', ConteudoAulaController.buscarConteudosPorDataEVinculacao);
+
 // POST /conteudo-aula - Criar conteúdo (ADMIN e PROFESSOR - SEM SECRETARIO)
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.PROFESSOR]), ConteudoAulaController.criarConteudo);
 

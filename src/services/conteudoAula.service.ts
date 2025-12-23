@@ -76,7 +76,9 @@ class ConteudoAulaService {
    * Criar novo conteúdo de aula
    */
   static async criarConteudo(dadosConteudo: {
-    aula_id: string;
+    aula_id?: string;
+    turma_disciplina_professor_id?: string;
+    data_aula?: string;
     descricao: string;
     conteudo: string;
   }): Promise<ConteudoAula> {
@@ -84,8 +86,9 @@ class ConteudoAulaService {
       logger.info(`📝 Dados recebidos: ${JSON.stringify(dadosConteudo)}`, 'conteudo-aula');
       
       // Validações
-      if (!dadosConteudo.aula_id?.trim()) {
-        throw new Error('ID da aula é obrigatório');
+      // aula_id agora é opcional, mas precisa ter data_aula + turma_disciplina_professor_id ou aula_id
+      if (!dadosConteudo.aula_id?.trim() && (!dadosConteudo.turma_disciplina_professor_id?.trim() || !dadosConteudo.data_aula)) {
+        throw new Error('É necessário fornecer aula_id OU (turma_disciplina_professor_id + data_aula)');
       }
 
       if (!dadosConteudo.descricao?.trim()) {
@@ -110,8 +113,22 @@ class ConteudoAulaService {
 
       logger.info(`📝 Criando conteúdo de aula: ${dadosConteudo.descricao}`, 'conteudo-aula');
       
+      // Converter data_aula string (YYYY-MM-DD) para Date no timezone local
+      let dataAulaDate: Date | undefined = undefined;
+      if (dadosConteudo.data_aula) {
+        // Se for string no formato YYYY-MM-DD, criar data no timezone local
+        if (typeof dadosConteudo.data_aula === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dadosConteudo.data_aula)) {
+          const [ano, mes, dia] = dadosConteudo.data_aula.split('-').map(Number);
+          dataAulaDate = new Date(ano, mes - 1, dia, 0, 0, 0, 0);
+        } else {
+          dataAulaDate = new Date(dadosConteudo.data_aula);
+        }
+      }
+      
       const novoConteudo = await ConteudoAulaModel.criar({
-        aula_id: dadosConteudo.aula_id.trim(),
+        aula_id: dadosConteudo.aula_id?.trim(),
+        turma_disciplina_professor_id: dadosConteudo.turma_disciplina_professor_id?.trim(),
+        data_aula: dataAulaDate,
         descricao: dadosConteudo.descricao.trim(),
         conteudo: dadosConteudo.conteudo.trim()
       });
@@ -126,6 +143,35 @@ class ConteudoAulaService {
         throw error;
       }
       throw new Error('Erro interno ao criar conteúdo de aula');
+    }
+  }
+
+  // NOVO: Buscar conteúdos por data e vinculação
+  static async buscarConteudosPorDataEVinculacao(
+    turma_disciplina_professor_id: string,
+    data_aula: string
+  ): Promise<ConteudoAula[]> {
+    try {
+      if (!turma_disciplina_professor_id?.trim()) {
+        throw new Error('ID da vinculação é obrigatório');
+      }
+
+      if (!data_aula?.trim()) {
+        throw new Error('Data da aula é obrigatória');
+      }
+
+      logger.info(`🔍 Buscando conteúdos da vinculação ${turma_disciplina_professor_id} e data ${data_aula}`, 'conteudo-aula');
+      const conteudos = await ConteudoAulaModel.buscarPorDataEVinculacao(turma_disciplina_professor_id, data_aula);
+      
+      logger.success(`✅ ${conteudos.length} conteúdos encontrados para a data`, 'conteudo-aula');
+      return conteudos;
+    } catch (error) {
+      logger.error('❌ Erro ao buscar conteúdos por data e vinculação', 'conteudo-aula', error);
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro interno ao buscar conteúdos por data e vinculação');
     }
   }
 

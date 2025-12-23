@@ -50,6 +50,13 @@ router.get('/vinculacao/:turma_disciplina_professor_id',
   AtividadeController.buscarPorVinculacao
 );
 
+// GET /api/atividade/data/:vinculacaoId/:data - Buscar atividades por data e vinculação
+// Permissões: ADMIN, SECRETARIO, PROFESSOR
+router.get('/data/:vinculacaoId/:data', 
+  autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
+  AtividadeController.buscarPorDataEVinculacao
+);
+
 // GET /api/atividade/periodo/:periodo_letivo_id - Buscar atividades por período
 // Permissões: ADMIN, SECRETARIO, PROFESSOR
 router.get('/periodo/:periodo_letivo_id', 
