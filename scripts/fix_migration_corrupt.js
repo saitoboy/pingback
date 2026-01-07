@@ -45,9 +45,18 @@ async function fixCorruptMigrations() {
     registeredMigrations.forEach(m => console.log(`  - ${m.name}`));
     
     // 3. Encontrar migrações registradas que não existem no diretório
+    // Normalizar nomes: remover extensão .js se existir para comparação
+    const registeredNames = registeredMigrations.map(m => {
+      const name = m.name;
+      return name.endsWith('.js') ? name.replace('.js', '') : name;
+    });
+    
     const corruptMigrations = registeredMigrations
       .map(m => m.name)
-      .filter(name => !migrationFiles.includes(name));
+      .filter(name => {
+        const normalizedName = name.endsWith('.js') ? name.replace('.js', '') : name;
+        return !migrationFiles.includes(normalizedName);
+      });
     
     if (corruptMigrations.length === 0) {
       console.log('\n✅ Nenhuma migração corrompida encontrada!');

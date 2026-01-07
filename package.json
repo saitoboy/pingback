@@ -19,6 +19,7 @@
     "db:reset": "knex migrate:rollback --all && npm run db:setup",
     "create:admin": "node scripts/create-admin-user.js",
     "fix:migration": "node scripts/fix_migration_corrupt.js",
+    "mark:migrations": "node scripts/mark_migrations_as_executed.js",
     "seed:run": "knex seed:run",
     "seed:reset": "knex seed:run --specific=001_sample_data.js",
     "db:fresh": "npm run db:reset && npm run seed:run"

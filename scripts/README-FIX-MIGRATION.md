@@ -55,11 +55,27 @@ ORDER BY name;
 
 ## 📋 Após Corrigir
 
-Após executar o script de correção, você pode executar as migrações normalmente:
+Após executar o script de correção, você tem duas opções:
+
+### Opção 1: Marcar migrações como executadas (Recomendado se o banco já está atualizado)
+
+Se o banco de dados já tem todas as tabelas e estruturas corretas, mas as migrações não estão registradas:
+
+```bash
+npm run mark:migrations
+```
+
+Este script verifica o estado atual do banco e marca as migrações correspondentes como já executadas.
+
+### Opção 2: Executar migrações normalmente
+
+Se você precisa executar as migrações pendentes:
 
 ```bash
 npm run migrate
 ```
+
+**Nota:** A primeira migração agora verifica se as tabelas já existem antes de tentar criá-las, evitando erros de "table already exists".
 
 ## ⚠️ Avisos Importantes
 

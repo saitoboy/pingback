@@ -83,7 +83,10 @@ exports.up = async function(knex) {
   
   console.log(`✅ ${frequencias.length + frequenciasComAula.length} frequências migradas`);
   
-  // 3. Tornar professor_id e turma_id obrigatórios e remover turma_disciplina_professor_id
+  // 3. Verificar se data_aula existe antes de alterar a tabela
+  const hasDataAula = await knex.schema.hasColumn('frequencia', 'data_aula');
+  
+  // 4. Tornar professor_id e turma_id obrigatórios e remover turma_disciplina_professor_id
   await knex.schema.alterTable('frequencia', function(table) {
     // Remover constraint de unicidade antiga se existir
     table.dropUnique(['aula_id', 'matricula_aluno_id']).catch(() => {});
@@ -100,7 +103,7 @@ exports.up = async function(knex) {
     table.uuid('aula_id').nullable().alter();
     
     // Garantir que data_aula existe e não é nula
-    if (!await knex.schema.hasColumn('frequencia', 'data_aula')) {
+    if (!hasDataAula) {
       table.date('data_aula').notNullable();
     } else {
       table.date('data_aula').notNullable().alter();
@@ -117,7 +120,7 @@ exports.up = async function(knex) {
     });
   });
   
-  // 4. Criar índices para melhor performance
+  // 5. Criar índices para melhor performance
   await knex.raw(`
     CREATE INDEX IF NOT EXISTS frequencia_professor_id_idx ON frequencia(professor_id);
     CREATE INDEX IF NOT EXISTS frequencia_turma_id_idx ON frequencia(turma_id);

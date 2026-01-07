@@ -66,7 +66,14 @@ exports.up = async function(knex) {
   const hasDataAula = await knex.schema.hasColumn('frequencia', 'data_aula');
   const hasTurmaDisciplinaProfessorId = await knex.schema.hasColumn('frequencia', 'turma_disciplina_professor_id');
   
-  if (!hasDataAula || !hasTurmaDisciplinaProfessorId) {
+  // Verificar se a coluna foi removida por migração posterior (20250125000000)
+  const hasProfessorId = await knex.schema.hasColumn('frequencia', 'professor_id');
+  const hasTurmaId = await knex.schema.hasColumn('frequencia', 'turma_id');
+  
+  // Se a migração posterior já foi executada, pular esta parte
+  if (hasProfessorId && hasTurmaId && !hasTurmaDisciplinaProfessorId) {
+    console.log('⚠️  Migração 20250125000000 já foi executada. Pulando modificação de frequencia.');
+  } else if (!hasDataAula || !hasTurmaDisciplinaProfessorId) {
     await knex.schema.alterTable('frequencia', function(table) {
       // Adicionar novas colunas apenas se não existirem
       if (!hasDataAula) {
@@ -101,24 +108,11 @@ exports.up = async function(knex) {
     `);
   }
 
-  // Migrar dados existentes de frequencia (se houver)
-  // Buscar todas as frequências e atualizar com data e turma_disciplina_professor_id da aula
-  const frequencias = await knex('frequencia')
-    .join('aula', 'frequencia.aula_id', 'aula.aula_id')
-    .select('frequencia.frequencia_id', 'aula.data_aula', 'aula.turma_disciplina_professor_id');
-  
-  for (const freq of frequencias) {
-    await knex('frequencia')
-      .where('frequencia_id', freq.frequencia_id)
-      .update({
-        data_aula: freq.data_aula,
-        turma_disciplina_professor_id: freq.turma_disciplina_professor_id
-      });
-  }
-
-  // Migrar dados existentes de frequencia (se houver)
-  // Buscar todas as frequências e atualizar com data e turma_disciplina_professor_id da aula
-  if (hasDataAula && hasTurmaDisciplinaProfessorId) {
+  // Se a migração posterior já foi executada, pular migração de dados
+  if (hasProfessorId && hasTurmaId && !hasTurmaDisciplinaProfessorId) {
+    // Já foi migrado pela migração 20250125000000, pular
+    console.log('⚠️  Pulando migração de dados de frequencia (já migrado pela 20250125000000)');
+  } else if (hasDataAula && hasTurmaDisciplinaProfessorId) {
     // Se as colunas já existem, verificar se já têm dados
     const frequenciasSemData = await knex('frequencia')
       .whereNull('data_aula')
@@ -149,30 +143,94 @@ exports.up = async function(knex) {
         });
     }
     
-    // Tornar as novas colunas obrigatórias após migração
-    await knex.schema.alterTable('frequencia', function(table) {
-      table.date('data_aula').notNullable().alter();
-      table.uuid('turma_disciplina_professor_id').notNullable().alter();
-    });
+    // Verificar se há valores NULL antes de tornar obrigatório
+    const frequenciasComNull = await knex('frequencia')
+      .whereNull('data_aula')
+      .orWhereNull('turma_disciplina_professor_id')
+      .count('* as count')
+      .first();
+    
+    const nullCount = parseInt(frequenciasComNull?.count || '0');
+    
+    if (nullCount > 0) {
+      console.log(`⚠️  Encontradas ${nullCount} frequências com valores NULL. Tentando migrar...`);
+      
+      // Tentar migrar frequências que têm aula_id
+      const frequenciasParaMigrar = await knex('frequencia')
+        .leftJoin('aula', 'frequencia.aula_id', 'aula.aula_id')
+        .whereNull('frequencia.data_aula')
+        .orWhereNull('frequencia.turma_disciplina_professor_id')
+        .whereNotNull('frequencia.aula_id')
+        .select('frequencia.frequencia_id', 'aula.data_aula', 'aula.turma_disciplina_professor_id');
+      
+      for (const freq of frequenciasParaMigrar) {
+        if (freq.data_aula && freq.turma_disciplina_professor_id) {
+          await knex('frequencia')
+            .where('frequencia_id', freq.frequencia_id)
+            .update({
+              data_aula: freq.data_aula,
+              turma_disciplina_professor_id: freq.turma_disciplina_professor_id
+            });
+        }
+      }
+      
+      // Verificar novamente quantas ainda têm NULL
+      const frequenciasAindaComNull = await knex('frequencia')
+        .whereNull('data_aula')
+        .orWhereNull('turma_disciplina_professor_id')
+        .count('* as count')
+        .first();
+      
+      const aindaNullCount = parseInt(frequenciasAindaComNull?.count || '0');
+      
+      if (aindaNullCount > 0) {
+        console.log(`⚠️  Ainda existem ${aindaNullCount} frequências com NULL. Mantendo colunas como nullable.`);
+        // Não tornar obrigatório se ainda há valores NULL
+      } else {
+        // Tornar as novas colunas obrigatórias após migração (apenas se não houver NULL)
+        try {
+          await knex.schema.alterTable('frequencia', function(table) {
+            table.date('data_aula').notNullable().alter();
+            table.uuid('turma_disciplina_professor_id').notNullable().alter();
+          });
+        } catch (error) {
+          console.log('⚠️  Erro ao tornar colunas obrigatórias (pode haver valores NULL):', error.message);
+          // Se falhar, manter como nullable
+        }
+      }
+    } else {
+      // Se não havia valores NULL, tornar obrigatório diretamente
+      try {
+        await knex.schema.alterTable('frequencia', function(table) {
+          table.date('data_aula').notNullable().alter();
+          table.uuid('turma_disciplina_professor_id').notNullable().alter();
+        });
+      } catch (error) {
+        console.log('⚠️  Erro ao tornar colunas obrigatórias:', error.message);
+        // Se falhar, manter como nullable
+      }
+    }
   }
 
-  // Remover constraint de unicidade antiga e criar nova (se necessário)
-  try {
-    await knex.schema.alterTable('frequencia', function(table) {
-      table.dropUnique(['aula_id', 'matricula_aluno_id']);
-    });
-  } catch (error) {
-    // Constraint pode não existir
-    console.log('Constraint antiga não existe ou já foi removida');
-  }
-  
-  try {
-    await knex.schema.alterTable('frequencia', function(table) {
-      table.unique(['turma_disciplina_professor_id', 'data_aula', 'matricula_aluno_id']);
-    });
-  } catch (error) {
-    // Constraint pode já existir
-    console.log('Nova constraint já existe');
+  // Remover constraint de unicidade antiga e criar nova (apenas se a coluna ainda existe)
+  if (!hasProfessorId || !hasTurmaId || hasTurmaDisciplinaProfessorId) {
+    try {
+      await knex.schema.alterTable('frequencia', function(table) {
+        table.dropUnique(['aula_id', 'matricula_aluno_id']);
+      });
+    } catch (error) {
+      // Constraint pode não existir
+      console.log('Constraint antiga não existe ou já foi removida');
+    }
+    
+    try {
+      await knex.schema.alterTable('frequencia', function(table) {
+        table.unique(['turma_disciplina_professor_id', 'data_aula', 'matricula_aluno_id']);
+      });
+    } catch (error) {
+      // Constraint pode já existir
+      console.log('Nova constraint já existe');
+    }
   }
 
   // Tornar aula_id nullable (para manter compatibilidade temporária)
