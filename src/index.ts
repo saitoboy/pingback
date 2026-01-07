@@ -101,7 +101,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'OPTIONS') {
     logInfo(`✅ CORS Preflight OPTIONS respondido para: ${origin || 'no origin'}`, 'server');
     logInfo(`📤 Headers enviados: Access-Control-Allow-Origin=${allowedOrigin}`, 'server');
-    return res.status(204).end();
+    // Garantir que os headers estão sendo enviados
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(204).send();
   }
 
   next();
@@ -113,23 +118,20 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Configuração adicional do CORS usando o pacote cors como backup
 // O middleware manual acima já trata tudo, mas isso garante compatibilidade
+// IMPORTANTE: preflightContinue: false garante que OPTIONS não passe para outros middlewares
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = getAllowedOrigins();
     
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      // Permite qualquer origem em produção (já controlado pelo middleware manual)
-      callback(null, true);
-    }
+    // Permite qualquer origem (já controlado pelo middleware manual acima)
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   optionsSuccessStatus: 204,
-  preflightContinue: false
+  preflightContinue: false // CRÍTICO: não passa OPTIONS para outros middlewares
 }));
 
 logSuccess('✅ Middlewares básicos configurados', 'server');
@@ -336,6 +338,64 @@ app.use('/grade-horario', gradeHorarioProfessorRoutes);
 logDebug('📅 Rotas de grade de horários registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
+
+// Middleware de tratamento de erros global - DEVE ser o ÚLTIMO middleware
+// Garante que headers CORS sejam sempre enviados, mesmo em caso de erro
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = getAllowedOrigins();
+  
+  // Determina a origem permitida (mesma lógica do middleware CORS)
+  let allowedOrigin: string;
+  if (origin && allowedOrigins.includes(origin)) {
+    allowedOrigin = origin;
+  } else if (origin) {
+    allowedOrigin = origin;
+  } else {
+    allowedOrigin = '*';
+  }
+
+  // Garante que headers CORS estejam presentes mesmo em erros
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
+
+  logError(`❌ Erro não tratado: ${err.message}`, 'error', err);
+  
+  res.status(err.status || 500).json({
+    status: 'erro',
+    mensagem: err.message || 'Erro interno do servidor'
+  });
+});
+
+// Middleware para rotas não encontradas - também garante CORS
+app.use((req: Request, res: Response) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = getAllowedOrigins();
+  
+  let allowedOrigin: string;
+  if (origin && allowedOrigins.includes(origin)) {
+    allowedOrigin = origin;
+  } else if (origin) {
+    allowedOrigin = origin;
+  } else {
+    allowedOrigin = '*';
+  }
+
+  // Garante headers CORS mesmo para 404
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
+
+  res.status(404).json({
+    status: 'erro',
+    mensagem: 'Rota não encontrada'
+  });
+});
 
 const HOST = process.env.HOST || 'localhost';
 const PORT = Number(process.env.PORT) || 3003;
