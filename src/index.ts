@@ -40,102 +40,46 @@ const app = express();
 
 logInfo('🚀 Inicializando Sistema Escolar Pinguinho API', 'server');
 
-// Função para obter lista de origens permitidas
-const getAllowedOrigins = (): string[] => {
-  const origins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5174',
-    'https://pinguinho-pingfront.hvko68.easypanel.host',
-    'https://pinguinho-pingfront-test.hvko68.easypanel.host',
-    process.env.FRONTEND_URL,
-    process.env.CORS_ORIGIN
-  ].filter(Boolean);
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  'https://pinguinho-pingfront.hvko68.easypanel.host',
+  'https://pinguinho-pingfront-test.hvko68.easypanel.host',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
-  // Se CORS_ORIGIN contém múltiplas origens, adiciona cada uma
-  if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes(',')) {
-    const multipleOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
-    origins.push(...multipleOrigins);
-  }
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Permite chamadas sem Origin (Postman, curl, healthcheck)
+    if (!origin) return callback(null, true);
 
-  return origins;
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS bloqueado para: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With'
+  ],
+  optionsSuccessStatus: 204,
 };
 
-// Middleware CORS global - DEVE ser o PRIMEIRO middleware
-// IMPORTANTE: Este middleware deve processar ANTES de qualquer outro
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = getAllowedOrigins();
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
-  // Log detalhado para debug
-  logInfo(`🌐 CORS Request: ${req.method} ${req.path}`, 'server');
-  logInfo(`📍 Origin recebida: ${origin || 'NENHUMA'}`, 'server');
-  logInfo(`📋 Origens permitidas: ${allowedOrigins.join(', ')}`, 'server');
-
-  // Determina a origem permitida
-  // IMPORTANTE: Com credentials: true, NÃO pode usar '*', deve ser a origem exata
-  let allowedOrigin: string;
-  if (origin && allowedOrigins.includes(origin)) {
-    allowedOrigin = origin;
-    logInfo(`✅ CORS: Origem permitida da lista: ${origin}`, 'server');
-  } else if (origin) {
-    // Em produção, permite a origem mesmo se não estiver na lista (para flexibilidade)
-    allowedOrigin = origin;
-    logInfo(`⚠️ CORS: Origem não configurada, mas PERMITIDA: ${origin}`, 'server');
-  } else {
-    // Se não há origem, permite qualquer (para requisições diretas como Postman)
-    allowedOrigin = '*';
-    logInfo(`🌐 CORS: Sem origem, usando '*'`, 'server');
-  }
-
-  // Define TODOS os headers CORS em TODAS as requisições
-  // IMPORTANTE: Estes headers devem estar presentes em TODAS as respostas
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
-  res.setHeader('Vary', 'Origin'); // Importante para cache do navegador
-
-  // Se for preflight (OPTIONS), responde imediatamente SEM passar para outros middlewares
-  if (req.method === 'OPTIONS') {
-    logInfo(`✅ CORS Preflight OPTIONS respondido para: ${origin || 'no origin'}`, 'server');
-    logInfo(`📤 Headers enviados: Access-Control-Allow-Origin=${allowedOrigin}`, 'server');
-    // Garantir que os headers estão sendo enviados
-    res.header('Access-Control-Allow-Origin', allowedOrigin);
-    res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    return res.status(204).send();
-  }
-
-  next();
-});
 
 // Configuração básica do Express
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Configuração adicional do CORS usando o pacote cors como backup
-// O middleware manual acima já trata tudo, mas isso garante compatibilidade
-// IMPORTANTE: preflightContinue: false garante que OPTIONS não passe para outros middlewares
-app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = getAllowedOrigins();
-    
-    // Permite qualquer origem (já controlado pelo middleware manual acima)
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 204,
-  preflightContinue: false // CRÍTICO: não passa OPTIONS para outros middlewares
-}));
-
 logSuccess('✅ Middlewares básicos configurados', 'server');
-logInfo(`🌐 CORS configurado para produção`, 'server');
+logInfo(`🌐 CORS configurado com whitelist de origens`, 'server');
 
 // Middleware para log de requisições
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -342,25 +286,6 @@ logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 // Middleware de tratamento de erros global - DEVE ser o ÚLTIMO middleware
 // Garante que headers CORS sejam sempre enviados, mesmo em caso de erro
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = getAllowedOrigins();
-  
-  // Determina a origem permitida (mesma lógica do middleware CORS)
-  let allowedOrigin: string;
-  if (origin && allowedOrigins.includes(origin)) {
-    allowedOrigin = origin;
-  } else if (origin) {
-    allowedOrigin = origin;
-  } else {
-    allowedOrigin = '*';
-  }
-
-  // Garante que headers CORS estejam presentes mesmo em erros
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Vary', 'Origin');
 
   logError(`❌ Erro não tratado: ${err.message}`, 'error', err);
   
@@ -372,24 +297,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Middleware para rotas não encontradas - também garante CORS
 app.use((req: Request, res: Response) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = getAllowedOrigins();
-  
-  let allowedOrigin: string;
-  if (origin && allowedOrigins.includes(origin)) {
-    allowedOrigin = origin;
-  } else if (origin) {
-    allowedOrigin = origin;
-  } else {
-    allowedOrigin = '*';
-  }
-
-  // Garante headers CORS mesmo para 404
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Vary', 'Origin');
 
   res.status(404).json({
     status: 'erro',
