@@ -71,8 +71,6 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
 
 // Configuração básica do Express
 app.use(express.json({ limit: '10mb' }));
