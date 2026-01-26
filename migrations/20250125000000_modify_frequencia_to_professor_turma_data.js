@@ -86,12 +86,35 @@ exports.up = async function(knex) {
   // 3. Verificar se data_aula existe antes de alterar a tabela
   const hasDataAula = await knex.schema.hasColumn('frequencia', 'data_aula');
   
-  // 4. Tornar professor_id e turma_id obrigatórios e remover turma_disciplina_professor_id
-  await knex.schema.alterTable('frequencia', function(table) {
-    // Remover constraint de unicidade antiga se existir
-    table.dropUnique(['aula_id', 'matricula_aluno_id']).catch(() => {});
-    table.dropUnique(['turma_disciplina_professor_id', 'matricula_aluno_id', 'data_aula']).catch(() => {});
+  // 4. Remover constraints de unicidade antigas usando SQL direto (se existirem)
+  try {
+    // Buscar e remover constraints de unicidade antigas
+    const constraints = await knex.raw(`
+      SELECT constraint_name 
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'frequencia' 
+      AND constraint_type = 'UNIQUE'
+      AND (
+        constraint_name LIKE '%aula_id%matricula_aluno_id%'
+        OR constraint_name LIKE '%turma_disciplina_professor_id%matricula_aluno_id%data_aula%'
+      );
+    `);
     
+    for (const constraint of constraints.rows || []) {
+      try {
+        const constraintName = constraint.constraint_name;
+        await knex.raw(`ALTER TABLE frequencia DROP CONSTRAINT IF EXISTS "${constraintName}"`);
+        console.log(`✅ Constraint ${constraintName} removida`);
+      } catch (error) {
+        console.log(`⚠️  Erro ao remover constraint ${constraint.constraint_name}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.log('⚠️  Erro ao buscar constraints antigas (pode não existirem):', error.message);
+  }
+  
+  // 5. Tornar professor_id e turma_id obrigatórios e remover turma_disciplina_professor_id
+  await knex.schema.alterTable('frequencia', function(table) {
     // Tornar professor_id e turma_id obrigatórios
     table.uuid('professor_id').notNullable().alter();
     table.uuid('turma_id').notNullable().alter();
@@ -120,7 +143,7 @@ exports.up = async function(knex) {
     });
   });
   
-  // 5. Criar índices para melhor performance
+  // 6. Criar índices para melhor performance
   await knex.raw(`
     CREATE INDEX IF NOT EXISTS frequencia_professor_id_idx ON frequencia(professor_id);
     CREATE INDEX IF NOT EXISTS frequencia_turma_id_idx ON frequencia(turma_id);
@@ -174,21 +197,55 @@ exports.down = async function(knex) {
     DROP INDEX IF EXISTS frequencia_professor_turma_data_idx;
   `);
   
-  // 4. Reverter alterações na tabela
-  await knex.schema.alterTable('frequencia', function(table) {
+  // 4. Remover constraints e foreign keys usando SQL direto
+  try {
     // Remover constraint de unicidade nova
-    table.dropUnique(['professor_id', 'turma_id', 'data_aula', 'matricula_aluno_id']).catch(() => {});
+    const uniqueConstraint = await knex.raw(`
+      SELECT constraint_name 
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'frequencia' 
+      AND constraint_type = 'UNIQUE'
+      AND constraint_name = 'frequencia_professor_turma_data_aluno_unique';
+    `);
+    
+    if (uniqueConstraint.rows && uniqueConstraint.rows.length > 0) {
+      await knex.raw(`ALTER TABLE frequencia DROP CONSTRAINT frequencia_professor_turma_data_aluno_unique`);
+      console.log('✅ Constraint de unicidade removida');
+    }
     
     // Remover foreign keys
-    table.dropForeign('professor_id').catch(() => {});
-    table.dropForeign('turma_id').catch(() => {});
+    const foreignKeys = await knex.raw(`
+      SELECT constraint_name 
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'frequencia' 
+      AND constraint_type = 'FOREIGN KEY'
+      AND (
+        constraint_name LIKE '%professor_id%'
+        OR constraint_name LIKE '%turma_id%'
+      );
+    `);
     
+    for (const fk of foreignKeys.rows || []) {
+      try {
+        const fkName = fk.constraint_name;
+        await knex.raw(`ALTER TABLE frequencia DROP CONSTRAINT IF EXISTS "${fkName}"`);
+        console.log(`✅ Foreign key ${fkName} removida`);
+      } catch (error) {
+        console.log(`⚠️  Erro ao remover foreign key ${fk.constraint_name}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.log('⚠️  Erro ao remover constraints (pode não existirem):', error.message);
+  }
+  
+  // 5. Reverter alterações na tabela
+  await knex.schema.alterTable('frequencia', function(table) {
     // Remover colunas professor_id e turma_id
     table.dropColumn('professor_id');
     table.dropColumn('turma_id');
     
     // Restaurar constraint antiga
-    table.unique(['aula_id', 'matricula_aluno_id']).catch(() => {});
+    table.unique(['aula_id', 'matricula_aluno_id']);
   });
   
   console.log('✅ Reversão concluída');
