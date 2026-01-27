@@ -576,7 +576,76 @@
           "response": []
         },
         {
-          "name": "Registrar Frequência em Lote",
+          "name": "Buscar Frequência por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Frequências por Professor, Turma e Data (NOVO)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/professor/123e4567-e89b-12d3-a456-426614174000/turma/123e4567-e89b-12d3-a456-426614174001/data/2025-01-25",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "professor", "123e4567-e89b-12d3-a456-426614174000", "turma", "123e4567-e89b-12d3-a456-426614174001", "data", "2025-01-25"]
+            },
+            "description": "Busca frequências por professor_id, turma_id e data. A frequência agora é contada por dia de aula do professor na turma, não mais por matéria/disciplina."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Frequência em Lote por Professor, Turma e Data (NOVO)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"professor_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"turma_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n  \"data_aula\": \"2025-01-25\",\n  \"frequencias\": [\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n      \"presenca\": true\n    },\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n      \"presenca\": false\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/lote-por-professor-turma-data",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "lote-por-professor-turma-data"]
+            },
+            "description": "Registra frequência em lote usando professor_id, turma_id e data_aula. Este é o método principal e recomendado. A frequência é contada por dia de aula do professor na turma, não por matéria/disciplina."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Frequência em Lote (por Aula)",
           "request": {
             "method": "POST",
             "header": [
@@ -597,6 +666,176 @@
               "raw": "{{baseUrl}}/frequencia/lote",
               "host": ["{{baseUrl}}"],
               "path": ["frequencia", "lote"]
+            },
+            "description": "Registra frequência em lote usando aula_id. O sistema converte automaticamente para professor_id + turma_id + data."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Frequência em Lote por Data (DEPRECATED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"turma_disciplina_professor_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"data_aula\": \"2025-01-25\",\n  \"frequencias\": [\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n      \"presenca\": true\n    },\n    {\n      \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n      \"presenca\": false\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/lote-por-data",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "lote-por-data"]
+            },
+            "description": "DEPRECATED: Mantido para compatibilidade. Use 'Registrar Frequência em Lote por Professor, Turma e Data' ao invés deste endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Frequências por Turma e Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/turma/123e4567-e89b-12d3-a456-426614174000/data/2025-01-25?disciplina_id=123e4567-e89b-12d3-a456-426614174001",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "turma", "123e4567-e89b-12d3-a456-426614174000", "data", "2025-01-25"],
+              "query": [
+                {
+                  "key": "disciplina_id",
+                  "value": "123e4567-e89b-12d3-a456-426614174001",
+                  "description": "Opcional"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Frequências por Aluno",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/aluno/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "aluno", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Frequência Individual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"professor_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"turma_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n  \"data_aula\": \"2025-01-25\",\n  \"matricula_aluno_id\": \"123e4567-e89b-12d3-a456-426614174002\",\n  \"presenca\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/frequencia",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia"]
+            },
+            "description": "Cria uma frequência individual. Aceita professor_id + turma_id + data_aula OU aula_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Frequência",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"presenca\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Frequência",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "123e4567-e89b-12d3-a456-426614174000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Estatísticas de Frequência por Aluno",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/frequencia/estatisticas/aluno/123e4567-e89b-12d3-a456-426614174000",
+              "host": ["{{baseUrl}}"],
+              "path": ["frequencia", "estatisticas", "aluno", "123e4567-e89b-12d3-a456-426614174000"]
             }
           },
           "response": []

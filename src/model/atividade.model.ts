@@ -21,6 +21,17 @@ export const buscarPorAula = async (aula_id: string): Promise<Atividade[]> => {
     .orderBy('created_at', 'asc');
 };
 
+// NOVO: Buscar atividades por data e vinculação (método principal)
+export const buscarPorDataEVinculacao = async (
+  turma_disciplina_professor_id: string,
+  data_aula: string
+): Promise<Atividade[]> => {
+  return await connection(tabela)
+    .where({ turma_disciplina_professor_id })
+    .whereRaw('DATE(data_aula) = DATE(?)', [data_aula])
+    .orderBy('created_at', 'asc');
+};
+
 export const buscarPorVinculacao = async (turma_disciplina_professor_id: string): Promise<Atividade[]> => {
   return await connection(tabela)
     .where({ turma_disciplina_professor_id })
@@ -48,13 +59,20 @@ export const buscarQueValemNota = async (turma_disciplina_professor_id?: string)
 export const criar = async (
   atividade: Omit<Atividade, 'atividade_id' | 'created_at' | 'updated_at'>
 ): Promise<Atividade> => {
-  // Verificar se a aula existe
-  const aulaExiste = await connection('aula')
-    .where({ aula_id: atividade.aula_id })
-    .first();
+  // Se aula_id foi fornecido, verificar se existe (compatibilidade)
+  if (atividade.aula_id) {
+    const aulaExiste = await connection('aula')
+      .where({ aula_id: atividade.aula_id })
+      .first();
 
-  if (!aulaExiste) {
-    throw new Error('Aula não encontrada');
+    if (!aulaExiste) {
+      throw new Error('Aula não encontrada');
+    }
+
+    // Se não tem data_aula mas tem aula_id, buscar da aula
+    if (!atividade.data_aula) {
+      atividade.data_aula = aulaExiste.data_aula;
+    }
   }
 
   // Verificar se a vinculação existe

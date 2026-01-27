@@ -21,16 +21,58 @@ export const buscarPorAula = async (aula_id: string): Promise<ConteudoAula[]> =>
     .orderBy('created_at', 'asc');
 };
 
+// NOVO: Buscar conteúdos por data e vinculação (método principal)
+export const buscarPorDataEVinculacao = async (
+  turma_disciplina_professor_id: string,
+  data_aula: string
+): Promise<ConteudoAula[]> => {
+  return await connection(tabela)
+    .where({ turma_disciplina_professor_id })
+    .whereRaw('DATE(data_aula) = DATE(?)', [data_aula])
+    .orderBy('created_at', 'asc');
+};
+
 export const criar = async (
   conteudo: Omit<ConteudoAula, 'conteudo_aula_id' | 'created_at' | 'updated_at'>
 ): Promise<ConteudoAula> => {
-  // Verificar se a aula existe
-  const aulaExiste = await connection('aula')
-    .where({ aula_id: conteudo.aula_id })
-    .first();
+  // Se aula_id foi fornecido, verificar se existe (compatibilidade)
+  if (conteudo.aula_id) {
+    const aulaExiste = await connection('aula')
+      .where({ aula_id: conteudo.aula_id })
+      .first();
 
-  if (!aulaExiste) {
-    throw new Error('Aula não encontrada');
+    if (!aulaExiste) {
+      throw new Error('Aula não encontrada');
+    }
+  }
+
+  // Verificar se a vinculação existe
+  if (conteudo.turma_disciplina_professor_id) {
+    const vinculacaoExiste = await connection('turma_disciplina_professor')
+      .where({ turma_disciplina_professor_id: conteudo.turma_disciplina_professor_id })
+      .first();
+
+    if (!vinculacaoExiste) {
+      throw new Error('Vinculação professor-turma-disciplina não encontrada');
+    }
+  }
+
+  // Se não tem data_aula mas tem aula_id, buscar da aula
+  if (!conteudo.data_aula && conteudo.aula_id) {
+    const aula = await connection('aula')
+      .where({ aula_id: conteudo.aula_id })
+      .first();
+    
+    if (aula) {
+      conteudo.data_aula = aula.data_aula;
+      if (!conteudo.turma_disciplina_professor_id) {
+        conteudo.turma_disciplina_professor_id = aula.turma_disciplina_professor_id;
+      }
+    }
+  }
+
+  if (!conteudo.data_aula || !conteudo.turma_disciplina_professor_id) {
+    throw new Error('É necessário fornecer data_aula e turma_disciplina_professor_id');
   }
 
   const [novoConteudo] = await connection(tabela)

@@ -109,7 +109,7 @@ export class AtividadeService {
   }
 
   // Criar nova atividade
-  static async criar(dadosAtividade: Omit<Atividade, 'atividade_id' | 'created_at' | 'updated_at'>): Promise<Atividade> {
+  static async criar(dadosAtividade: Omit<Atividade, 'atividade_id' | 'created_at' | 'updated_at'> & { data_aula?: Date | string }): Promise<Atividade> {
     try {
       logger.info(`➕ Criando nova atividade: ${dadosAtividade.titulo}`, 'atividade');
 
@@ -122,8 +122,9 @@ export class AtividadeService {
         throw new Error('Descrição da atividade é obrigatória');
       }
 
-      if (!dadosAtividade.aula_id?.trim()) {
-        throw new Error('ID da aula é obrigatório');
+      // aula_id agora é opcional, mas precisa ter data_aula ou aula_id
+      if (!dadosAtividade.aula_id?.trim() && !dadosAtividade.data_aula) {
+        throw new Error('É necessário fornecer aula_id ou data_aula');
       }
 
       if (!dadosAtividade.turma_disciplina_professor_id?.trim()) {
@@ -142,7 +143,25 @@ export class AtividadeService {
         throw new Error('Título não pode ter mais de 255 caracteres');
       }
 
-      const novaAtividade = await AtividadeModel.criar(dadosAtividade);
+      // Converter data_aula string (YYYY-MM-DD) para Date no timezone local
+      let dataAulaDate: Date | undefined = undefined;
+      if (dadosAtividade.data_aula) {
+        // Se for string no formato YYYY-MM-DD, criar data no timezone local
+        const dataAulaValue = dadosAtividade.data_aula as any;
+        if (typeof dataAulaValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dataAulaValue)) {
+          const [ano, mes, dia] = dataAulaValue.split('-').map(Number);
+          dataAulaDate = new Date(ano, mes - 1, dia, 0, 0, 0, 0);
+        } else if (dataAulaValue instanceof Date) {
+          dataAulaDate = dataAulaValue;
+        } else {
+          dataAulaDate = new Date(dataAulaValue);
+        }
+      }
+
+      const novaAtividade = await AtividadeModel.criar({
+        ...dadosAtividade,
+        data_aula: dataAulaDate
+      });
       logger.info(`✅ Atividade criada com sucesso: ${novaAtividade.atividade_id}`, 'atividade');
       return novaAtividade;
     } catch (error) {
@@ -273,6 +292,31 @@ export class AtividadeService {
       return estatisticas;
     } catch (error) {
       logger.error(`❌ Erro ao buscar estatísticas do professor: ${professor_id}`, 'atividade', error);
+      throw error;
+    }
+  }
+
+  // NOVO: Buscar atividades por data e vinculação
+  static async buscarPorDataEVinculacao(
+    turma_disciplina_professor_id: string,
+    data_aula: string
+  ): Promise<Atividade[]> {
+    try {
+      logger.info(`🔍 Buscando atividades da vinculação ${turma_disciplina_professor_id} e data ${data_aula}`, 'atividade');
+      
+      if (!turma_disciplina_professor_id?.trim()) {
+        throw new Error('ID da vinculação é obrigatório');
+      }
+
+      if (!data_aula?.trim()) {
+        throw new Error('Data da aula é obrigatória');
+      }
+
+      const atividades = await AtividadeModel.buscarPorDataEVinculacao(turma_disciplina_professor_id, data_aula);
+      logger.info(`✅ ${atividades.length} atividades encontradas para a data`, 'atividade');
+      return atividades;
+    } catch (error) {
+      logger.error(`❌ Erro ao buscar atividades por data e vinculação:`, 'atividade', error);
       throw error;
     }
   }

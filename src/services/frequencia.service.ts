@@ -221,4 +221,85 @@ export class FrequenciaService {
       throw error;
     }
   }
+
+  // NOVO: Buscar frequências por professor, turma e data (método principal)
+  static async buscarPorProfessorTurmaEData(
+    professor_id: string,
+    turma_id: string,
+    data_aula: string
+  ): Promise<any[]> {
+    try {
+      logger.info(`Buscando frequências por professor ${professor_id}, turma ${turma_id} e data ${data_aula}`);
+      const frequencias = await FrequenciaModel.buscarPorProfessorTurmaEData(professor_id, turma_id, data_aula);
+      logger.info(`Encontradas ${frequencias.length} frequências para os critérios informados`);
+      return frequencias;
+    } catch (error) {
+      logger.error(`Erro ao buscar frequências por professor, turma e data:`, 'FrequenciaService', error);
+      throw error;
+    }
+  }
+
+  // DEPRECATED: Manter para compatibilidade
+  static async buscarPorDataEVinculacao(
+    turma_disciplina_professor_id: string,
+    data_aula: string
+  ): Promise<any[]> {
+    try {
+      logger.info(`Buscando frequências por vinculação ${turma_disciplina_professor_id} e data ${data_aula}`);
+      const frequencias = await FrequenciaModel.buscarPorDataEVinculacao(turma_disciplina_professor_id, data_aula);
+      logger.info(`Encontradas ${frequencias.length} frequências para os critérios informados`);
+      return frequencias;
+    } catch (error) {
+      logger.error(`Erro ao buscar frequências por data e vinculação:`, 'FrequenciaService', error);
+      throw error;
+    }
+  }
+
+  // NOVO: Registrar frequência em lote por professor, turma e data (método principal)
+  static async registrarFrequenciaLotePorProfessorTurmaEData(
+    professor_id: string,
+    turma_id: string,
+    data_aula: string,
+    frequencias: Array<{ matricula_aluno_id: string; presenca: boolean }>
+  ): Promise<Frequencia[]> {
+    try {
+      logger.info(`Registrando frequência em lote para professor ${professor_id}, turma ${turma_id} e data ${data_aula}. Total de alunos: ${frequencias.length}`);
+      
+      const frequenciasRegistradas = await FrequenciaModel.registrarFrequenciaLotePorProfessorTurmaEData(
+        professor_id,
+        turma_id,
+        data_aula,
+        frequencias
+      );
+      
+      logger.info(`Frequência em lote registrada com sucesso. Total registrado: ${frequenciasRegistradas.length}`);
+      return frequenciasRegistradas;
+    } catch (error) {
+      logger.error(`Erro ao registrar frequência em lote por professor, turma e data:`, 'FrequenciaService', error);
+      throw error;
+    }
+  }
+
+  // DEPRECATED: Manter para compatibilidade
+  static async registrarFrequenciaLotePorData(
+    turma_disciplina_professor_id: string,
+    data_aula: string,
+    frequencias: Array<{ matricula_aluno_id: string; presenca: boolean }>
+  ): Promise<Frequencia[]> {
+    try {
+      logger.info(`Registrando frequência em lote para vinculação ${turma_disciplina_professor_id} e data ${data_aula}. Total de alunos: ${frequencias.length}`);
+      
+      const frequenciasRegistradas = await FrequenciaModel.registrarFrequenciaLotePorData(
+        turma_disciplina_professor_id,
+        data_aula,
+        frequencias
+      );
+      
+      logger.info(`Frequência em lote registrada com sucesso. Total registrado: ${frequenciasRegistradas.length}`);
+      return frequenciasRegistradas;
+    } catch (error) {
+      logger.error(`Erro ao registrar frequência em lote por data:`, 'FrequenciaService', error);
+      throw error;
+    }
+  }
 }

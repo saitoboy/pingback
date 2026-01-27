@@ -9,6 +9,13 @@ exports.up = async function(knex) {
   // Habilitar extensão UUID se não estiver habilitada
   await knex.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
   
+  // Verificar se as tabelas já existem (para evitar erros em re-execução)
+  const hasUsuarioTipo = await knex.schema.hasTable('usuario_tipo');
+  if (hasUsuarioTipo) {
+    console.log('⚠️  Tabelas já existem. Pulando criação de tabelas.');
+    return;
+  }
+  
   // 1. TIPOS DE USUÁRIO
   await knex.schema.createTable('usuario_tipo', function(table) {
     table.uuid('tipo_usuario_id').primary().defaultTo(knex.raw('gen_random_uuid()'));

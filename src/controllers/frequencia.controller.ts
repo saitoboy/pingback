@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { FrequenciaService } from '../services/frequencia.service';
+import * as AulaModel from '../model/aula.model';
+import connection from '../connection';
 import logger from '../utils/logger';
 
 export class FrequenciaController {
@@ -185,13 +187,27 @@ export class FrequenciaController {
 
   static async criar(req: Request, res: Response): Promise<void> {
     try {
-      const { aula_id, matricula_aluno_id, presenca } = req.body;
+      const { aula_id, professor_id, turma_id, turma_disciplina_professor_id, data_aula, matricula_aluno_id, presenca } = req.body;
       
       // Validações básicas
-      if (!aula_id || !matricula_aluno_id || presenca === undefined) {
+      // Aceita: aula_id OU (professor_id + turma_id + data_aula) OU (turma_disciplina_professor_id + data_aula) para compatibilidade
+      if (!matricula_aluno_id || presenca === undefined) {
         res.status(400).json({
           success: false,
-          message: 'Campos obrigatórios: aula_id, matricula_aluno_id, presenca'
+          message: 'Campos obrigatórios: matricula_aluno_id, presenca. E também: (aula_id) OU (professor_id + turma_id + data_aula) OU (turma_disciplina_professor_id + data_aula)'
+        });
+        return;
+      }
+
+      // Verificar se tem os campos necessários
+      const temAulaId = !!aula_id;
+      const temProfessorTurmaData = !!(professor_id && turma_id && data_aula);
+      const temVinculacaoData = !!(turma_disciplina_professor_id && data_aula);
+
+      if (!temAulaId && !temProfessorTurmaData && !temVinculacaoData) {
+        res.status(400).json({
+          success: false,
+          message: 'É necessário fornecer: aula_id OU (professor_id + turma_id + data_aula) OU (turma_disciplina_professor_id + data_aula)'
         });
         return;
       }
@@ -206,11 +222,66 @@ export class FrequenciaController {
 
       logger.info('Controller: Criando nova frequência');
       
-      const novaFrequencia = await FrequenciaService.criar({
-        aula_id,
+      let frequenciaData: any = {
         matricula_aluno_id,
         presenca
-      });
+      };
+
+      // Se forneceu aula_id, buscar dados da aula
+      if (aula_id) {
+        const aula = await AulaModel.buscarPorId(aula_id);
+        if (!aula) {
+          res.status(404).json({
+            success: false,
+            message: 'Aula não encontrada'
+          });
+          return;
+        }
+        
+        // Buscar professor_id e turma_id da vinculação da aula
+        const vinculacao = await connection('turma_disciplina_professor')
+          .select('professor_id', 'turma_id')
+          .where('turma_disciplina_professor_id', aula.turma_disciplina_professor_id)
+          .first();
+        
+        if (!vinculacao) {
+          res.status(404).json({
+            success: false,
+            message: 'Vinculação da aula não encontrada'
+          });
+          return;
+        }
+        
+        frequenciaData.aula_id = aula_id;
+        frequenciaData.data_aula = aula.data_aula;
+        frequenciaData.professor_id = vinculacao.professor_id;
+        frequenciaData.turma_id = vinculacao.turma_id;
+      } else if (professor_id && turma_id && data_aula) {
+        // Método novo: usar professor_id + turma_id + data_aula
+        frequenciaData.professor_id = professor_id;
+        frequenciaData.turma_id = turma_id;
+        frequenciaData.data_aula = new Date(data_aula);
+      } else if (turma_disciplina_professor_id && data_aula) {
+        // Método antigo (compatibilidade): buscar professor_id e turma_id da vinculação
+        const vinculacao = await connection('turma_disciplina_professor')
+          .select('professor_id', 'turma_id')
+          .where('turma_disciplina_professor_id', turma_disciplina_professor_id)
+          .first();
+        
+        if (!vinculacao) {
+          res.status(404).json({
+            success: false,
+            message: 'Vinculação não encontrada'
+          });
+          return;
+        }
+        
+        frequenciaData.professor_id = vinculacao.professor_id;
+        frequenciaData.turma_id = vinculacao.turma_id;
+        frequenciaData.data_aula = new Date(data_aula);
+      }
+      
+      const novaFrequencia = await FrequenciaService.criar(frequenciaData);
       
       res.status(201).json({
         success: true,
@@ -437,6 +508,219 @@ export class FrequenciaController {
       });
     } catch (error) {
       logger.error('Erro no controller ao registrar frequência em lote:', 'FrequenciaController', error);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('não encontrada') || error.message.includes('não encontrado')) {
+          res.status(404).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+        
+        if (error.message.includes('Já existe')) {
+          res.status(409).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  // NOVO: Buscar frequências por professor, turma e data
+  static async buscarPorProfessorTurmaEData(req: Request, res: Response): Promise<void> {
+    try {
+      const { professor_id, turma_id, data } = req.params;
+      logger.info(`Controller: Buscando frequências por professor ${professor_id}, turma ${turma_id} e data ${data}`);
+      
+      const frequencias = await FrequenciaService.buscarPorProfessorTurmaEData(professor_id, turma_id, data);
+      
+      res.status(200).json({
+        success: true,
+        data: frequencias,
+        message: `Frequências da data ${data} listadas com sucesso`
+      });
+    } catch (error) {
+      logger.error('Erro no controller ao buscar frequências por professor, turma e data:', 'FrequenciaController', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  // DEPRECATED: Manter para compatibilidade (busca por vinculação)
+  static async buscarPorDataEVinculacao(req: Request, res: Response): Promise<void> {
+    try {
+      const { vinculacaoId, data } = req.params;
+      logger.info(`Controller: Buscando frequências por vinculação ${vinculacaoId} e data ${data}`);
+      
+      const frequencias = await FrequenciaService.buscarPorDataEVinculacao(vinculacaoId, data);
+      
+      res.status(200).json({
+        success: true,
+        data: frequencias,
+        message: `Frequências da data ${data} listadas com sucesso`
+      });
+    } catch (error) {
+      logger.error('Erro no controller ao buscar frequências por data e vinculação:', 'FrequenciaController', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  // NOVO: Registrar frequência em lote por professor, turma e data
+  static async registrarFrequenciaLotePorProfessorTurmaEData(req: Request, res: Response): Promise<void> {
+    try {
+      const { professor_id, turma_id, data_aula, frequencias } = req.body;
+      
+      // Validações básicas
+      if (!professor_id || !turma_id || !data_aula || !frequencias || !Array.isArray(frequencias)) {
+        res.status(400).json({
+          success: false,
+          message: 'Campos obrigatórios: professor_id, turma_id, data_aula e frequencias (array)'
+        });
+        return;
+      }
+
+      if (frequencias.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'O array de frequências não pode estar vazio'
+        });
+        return;
+      }
+
+      // Validar estrutura de cada frequência
+      for (const freq of frequencias) {
+        if (!freq.matricula_aluno_id || freq.presenca === undefined) {
+          res.status(400).json({
+            success: false,
+            message: 'Cada item do array deve conter matricula_aluno_id e presenca'
+          });
+          return;
+        }
+        
+        if (typeof freq.presenca !== 'boolean') {
+          res.status(400).json({
+            success: false,
+            message: 'O campo presenca deve ser um valor booleano (true/false)'
+          });
+          return;
+        }
+      }
+
+      logger.info(`Controller: Registrando frequência em lote para professor ${professor_id}, turma ${turma_id} e data ${data_aula}`);
+      
+      const frequenciasRegistradas = await FrequenciaService.registrarFrequenciaLotePorProfessorTurmaEData(
+        professor_id,
+        turma_id,
+        data_aula,
+        frequencias
+      );
+      
+      res.status(201).json({
+        success: true,
+        data: frequenciasRegistradas,
+        message: `Frequência em lote registrada com sucesso. Total: ${frequenciasRegistradas.length} registros`
+      });
+    } catch (error) {
+      logger.error('Erro no controller ao registrar frequência em lote por professor, turma e data:', 'FrequenciaController', error);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('não encontrada') || error.message.includes('não encontrado')) {
+          res.status(404).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+        
+        if (error.message.includes('Já existe')) {
+          res.status(409).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  // DEPRECATED: Manter para compatibilidade (aceita vinculação e converte)
+  static async registrarFrequenciaLotePorData(req: Request, res: Response): Promise<void> {
+    try {
+      const { turma_disciplina_professor_id, data_aula, frequencias } = req.body;
+      
+      // Validações básicas
+      if (!turma_disciplina_professor_id || !data_aula || !frequencias || !Array.isArray(frequencias)) {
+        res.status(400).json({
+          success: false,
+          message: 'Campos obrigatórios: turma_disciplina_professor_id, data_aula e frequencias (array)'
+        });
+        return;
+      }
+
+      if (frequencias.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'O array de frequências não pode estar vazio'
+        });
+        return;
+      }
+
+      // Validar estrutura de cada frequência
+      for (const freq of frequencias) {
+        if (!freq.matricula_aluno_id || freq.presenca === undefined) {
+          res.status(400).json({
+            success: false,
+            message: 'Cada item do array deve conter matricula_aluno_id e presenca'
+          });
+          return;
+        }
+        
+        if (typeof freq.presenca !== 'boolean') {
+          res.status(400).json({
+            success: false,
+            message: 'O campo presenca deve ser um valor booleano (true/false)'
+          });
+          return;
+        }
+      }
+
+      logger.info(`Controller: Registrando frequência em lote para vinculação ${turma_disciplina_professor_id} e data ${data_aula}`);
+      
+      const frequenciasRegistradas = await FrequenciaService.registrarFrequenciaLotePorData(
+        turma_disciplina_professor_id,
+        data_aula,
+        frequencias
+      );
+      
+      res.status(201).json({
+        success: true,
+        data: frequenciasRegistradas,
+        message: `Frequência em lote registrada com sucesso. Total: ${frequenciasRegistradas.length} registros`
+      });
+    } catch (error) {
+      logger.error('Erro no controller ao registrar frequência em lote por data:', 'FrequenciaController', error);
       
       if (error instanceof Error) {
         if (error.message.includes('não encontrada') || error.message.includes('não encontrado')) {
