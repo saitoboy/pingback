@@ -21,11 +21,10 @@ export class PasswordResetService {
       const usuario = await UsuarioModel.buscarPorEmail(email);
       
       if (!usuario) {
-        // Por segurança, não revela se o email existe ou não
         logError('Tentativa de redefinição para email não cadastrado', 'password-reset', { email });
         return {
-          sucesso: true, // Retorna sucesso mesmo se não encontrar (segurança)
-          mensagem: 'Se o email estiver cadastrado, você receberá um código de redefinição.'
+          sucesso: false,
+          mensagem: 'Email não cadastrado no sistema. Verifique se o email está correto.'
         };
       }
 
@@ -64,7 +63,7 @@ export class PasswordResetService {
 
       return {
         sucesso: true,
-        mensagem: 'Se o email estiver cadastrado, você receberá um código de redefinição.'
+        mensagem: 'Código de redefinição enviado com sucesso! Verifique sua caixa de entrada.'
       };
     } catch (error: any) {
       logError('Erro ao solicitar redefinição de senha', 'password-reset', error);

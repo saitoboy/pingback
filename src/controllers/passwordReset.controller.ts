@@ -29,6 +29,12 @@ export class PasswordResetController {
 
       const resultado = await PasswordResetService.solicitarRedefinicao(email.trim());
 
+      // Se não foi bem-sucedido (email não encontrado), retorna 404
+      if (!resultado.sucesso) {
+        logError('Email não encontrado para redefinição', 'controller', { email });
+        return res.status(404).json(resultado);
+      }
+
       logSuccess('Solicitação de redefinição processada', 'controller', { email });
 
       return res.status(200).json(resultado);
