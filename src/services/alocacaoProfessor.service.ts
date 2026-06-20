@@ -309,7 +309,7 @@ class AlocacaoProfessorService {
       logInfo('🔍 Buscando disciplinas disponíveis', 'alocacao');
 
       const disciplinas = await connection('disciplina')
-        .select('disciplina_id', 'nome_disciplina')
+        .select('disciplina_id', 'nome_disciplina', 'categoria')
         .orderBy('nome_disciplina', 'asc');
 
       logSuccess(`✅ ${disciplinas.length} disciplinas encontradas`, 'alocacao');

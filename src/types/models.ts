@@ -183,9 +183,20 @@ export interface MatriculaAluno {
   updated_at: Date;
 }
 
+export type CategoriaDisciplina = 'base' | 'especial';
+
 export interface Disciplina {
   disciplina_id: string;
   nome_disciplina: string;
+  categoria: CategoriaDisciplina;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ProfessorDisciplina {
+  professor_disciplina_id: string;
+  professor_id: string; // = usuario.usuario_id
+  disciplina_id: string;
   created_at: Date;
   updated_at: Date;
 }

@@ -1,5 +1,5 @@
 import connection from '../connection';
-import { Disciplina } from '../types/models';
+import { CategoriaDisciplina, Disciplina } from '../types/models';
 
 const tabela = 'disciplina';
 
@@ -21,7 +21,7 @@ export const buscarPorNome = async (nome_disciplina: string): Promise<Disciplina
     .first();
 };
 
-export const criar = async (disciplina: Omit<Disciplina, 'disciplina_id' | 'created_at' | 'updated_at'>): Promise<Disciplina> => {
+export const criar = async (disciplina: { nome_disciplina: string; categoria?: CategoriaDisciplina }): Promise<Disciplina> => {
   // Verificar se já existe disciplina com mesmo nome
   const disciplinaExistente = await connection(tabela)
     .whereILike('nome_disciplina', disciplina.nome_disciplina)
