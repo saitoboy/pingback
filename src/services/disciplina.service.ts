@@ -1,6 +1,8 @@
 import * as DisciplinaModel from '../model/disciplina.model';
-import { Disciplina } from '../types/models';
+import { CategoriaDisciplina, Disciplina } from '../types/models';
 import logger from '../utils/logger';
+
+const CATEGORIAS_VALIDAS: CategoriaDisciplina[] = ['base', 'especial'];
 
 class DisciplinaService {
 
@@ -51,7 +53,7 @@ class DisciplinaService {
   /**
    * Criar nova disciplina
    */
-  static async criarDisciplina(dadosDisciplina: { nome_disciplina: string }): Promise<Disciplina> {
+  static async criarDisciplina(dadosDisciplina: { nome_disciplina: string; categoria?: CategoriaDisciplina }): Promise<Disciplina> {
     try {
       // Validações
       if (!dadosDisciplina.nome_disciplina?.trim()) {
@@ -66,10 +68,15 @@ class DisciplinaService {
         throw new Error('Nome da disciplina deve ter no máximo 100 caracteres');
       }
 
+      if (dadosDisciplina.categoria && !CATEGORIAS_VALIDAS.includes(dadosDisciplina.categoria)) {
+        throw new Error('Categoria inválida. Use "base" ou "especial"');
+      }
+
       logger.info(`📝 Criando nova disciplina: ${dadosDisciplina.nome_disciplina}`, 'disciplina');
-      
+
       const novaDisciplina = await DisciplinaModel.criar({
-        nome_disciplina: dadosDisciplina.nome_disciplina.trim()
+        nome_disciplina: dadosDisciplina.nome_disciplina.trim(),
+        categoria: dadosDisciplina.categoria
       });
 
       logger.success(`🎉 Disciplina criada com sucesso: ${novaDisciplina.nome_disciplina}`, 'disciplina');
