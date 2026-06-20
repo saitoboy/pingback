@@ -36,6 +36,24 @@ export const listarIdsDisciplinasBase = async (): Promise<string[]> => {
 };
 
 /**
+ * Retorna os ids dos professores que já possuem TODAS as disciplinas base
+ * (pacote base completo).
+ */
+export const listarProfessoresComPacoteBaseCompleto = async (): Promise<string[]> => {
+  const baseIds = await listarIdsDisciplinasBase();
+  if (baseIds.length === 0) return [];
+
+  const rows = await connection(`${tabela} as pd`)
+    .join('disciplina as d', 'pd.disciplina_id', 'd.disciplina_id')
+    .where('d.categoria', 'base')
+    .groupBy('pd.professor_id')
+    .havingRaw('COUNT(DISTINCT pd.disciplina_id) >= ?', [baseIds.length])
+    .select('pd.professor_id');
+
+  return rows.map((r) => r.professor_id);
+};
+
+/**
  * Adiciona (sem sobrescrever) um conjunto de disciplinas a vários professores.
  * Ignora os vínculos que já existem. Retorna a quantidade de vínculos criados.
  */

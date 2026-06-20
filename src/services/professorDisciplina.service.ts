@@ -25,6 +25,20 @@ class ProfessorDisciplinaService {
   }
 
   /**
+   * Lista os ids dos professores que já têm o pacote base completo.
+   */
+  static async listarProfessoresComPacoteBase(): Promise<string[]> {
+    try {
+      logger.info('🔍 Listando professores com pacote base completo', 'professor-disciplina');
+      return await ProfessorDisciplinaModel.listarProfessoresComPacoteBaseCompleto();
+    } catch (error) {
+      logger.error('❌ Erro ao listar professores com pacote base', 'professor-disciplina', error);
+      if (error instanceof Error) throw error;
+      throw new Error('Erro interno ao listar professores com pacote base');
+    }
+  }
+
+  /**
    * Aplica o pacote de disciplinas base a vários professores de uma vez
    * (adiciona sem remover as disciplinas que eles já têm).
    */

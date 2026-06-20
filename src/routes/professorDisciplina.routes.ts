@@ -8,6 +8,9 @@ const router = Router();
 // Todas as rotas precisam de autenticação
 router.use(autenticar);
 
+// Listar professores que já têm o pacote base completo (qualquer usuário autenticado)
+router.get('/status-pacote-base', ProfessorDisciplinaController.listarProfessoresComPacoteBase);
+
 // Aplicar pacote base a vários professores de uma vez (apenas ADMIN e SECRETARIO)
 router.post(
   '/aplicar-base',

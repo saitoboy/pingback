@@ -34,6 +34,28 @@ class ProfessorDisciplinaController {
   }
 
   /**
+   * Lista os ids dos professores que já têm o pacote base completo
+   * GET /professor-disciplina/status-pacote-base
+   */
+  static async listarProfessoresComPacoteBase(_req: Request, res: Response): Promise<void> {
+    try {
+      const professor_ids = await ProfessorDisciplinaService.listarProfessoresComPacoteBase();
+
+      res.status(200).json({
+        status: 'sucesso',
+        mensagem: 'Professores com pacote base listados com sucesso',
+        dados: professor_ids
+      });
+    } catch (error: any) {
+      logError('Erro ao listar professores com pacote base', 'controller', error);
+      res.status(500).json({
+        status: 'erro',
+        mensagem: error.message || 'Erro ao listar professores com pacote base'
+      });
+    }
+  }
+
+  /**
    * Aplica o pacote de disciplinas base a vários professores de uma vez
    * POST /professor-disciplina/aplicar-base
    * body: { professor_ids: string[] }
