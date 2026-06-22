@@ -40,8 +40,9 @@ export interface Aluno {
   endereco_aluno: string;
   bairro_aluno: string;
   cep_aluno: string;
-  religiao_id: string;
-  certidao_id: string;
+  religiao_id?: string;
+  certidao_id?: string;
+  foto_aluno?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -355,9 +356,10 @@ export interface FichaCadastroCompleta {
     endereco_aluno: string;
     bairro_aluno: string;
     cep_aluno: string;
-    religiao_id: string;
+    religiao_id?: string;
+    foto_aluno?: string;
   };
-  certidao: {
+  certidao?: {
     livro_certidao: string;
     matricula_certidao: string;
     termo_certidao: string;
@@ -429,7 +431,7 @@ export interface FichaCadastroCompleta {
 // Interface para resposta da ficha cadastro
 export interface FichaCadastroResposta {
   aluno: Aluno;
-  certidao: CertidaoNascimento;
+  certidao?: CertidaoNascimento;
   responsaveis: Responsavel[];
   dados_saude: DadosSaude;
   diagnostico: Diagnostico;
