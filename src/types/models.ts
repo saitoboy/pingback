@@ -176,6 +176,7 @@ export interface MatriculaAluno {
   aluno_id: string;
   turma_id: string;
   ano_letivo_id: string;
+  periodo_letivo_id?: string | null;
   data_matricula: Date;
   data_saida?: Date;
   motivo_saida?: string;
@@ -214,6 +215,7 @@ export interface TurmaDisciplinaProfessor {
 export interface Aula {
   aula_id: string;
   turma_disciplina_professor_id: string;
+  periodo_letivo_id?: string | null;
   data_aula: Date;
   hora_inicio: string;
   hora_fim: string;
@@ -246,6 +248,8 @@ export interface PeriodoLetivo {
   periodo_letivo_id: string;
   bimestre: number;
   ano_letivo_id: string;
+  data_inicio?: Date | string | null;
+  data_fim?: Date | string | null;
   created_at: Date;
   updated_at: Date;
 }

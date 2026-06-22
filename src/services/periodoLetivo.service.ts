@@ -11,8 +11,20 @@ class PeriodoLetivoService {
       erros.push("Campo 'bimestre' é obrigatório");
     }
 
-    if (dados.bimestre !== undefined && (!Number.isInteger(Number(dados.bimestre)) || Number(dados.bimestre) < 1 || Number(dados.bimestre) > 4)) {
-      erros.push("Campo 'bimestre' deve ser um número inteiro entre 1 e 4");
+    if (dados.bimestre !== undefined && (!Number.isInteger(Number(dados.bimestre)) || Number(dados.bimestre) < 1 || Number(dados.bimestre) > 3)) {
+      erros.push("Campo 'bimestre' deve ser um número inteiro entre 1 e 3");
+    }
+
+    if (dados.data_inicio && isNaN(Date.parse(dados.data_inicio))) {
+      erros.push("Campo 'data_inicio' deve ser uma data válida");
+    }
+
+    if (dados.data_fim && isNaN(Date.parse(dados.data_fim))) {
+      erros.push("Campo 'data_fim' deve ser uma data válida");
+    }
+
+    if (dados.data_inicio && dados.data_fim && new Date(dados.data_inicio) >= new Date(dados.data_fim)) {
+      erros.push("'data_fim' deve ser posterior a 'data_inicio'");
     }
 
     if (!dados.ano_letivo_id || typeof dados.ano_letivo_id !== 'string' || dados.ano_letivo_id.trim() === '') {
@@ -111,9 +123,11 @@ class PeriodoLetivoService {
       }
 
       // Preparar dados
-      const dadosLimpos = {
+      const dadosLimpos: any = {
         bimestre: Number(dados.bimestre),
-        ano_letivo_id: dados.ano_letivo_id.trim()
+        ano_letivo_id: dados.ano_letivo_id.trim(),
+        ...(dados.data_inicio !== undefined && { data_inicio: dados.data_inicio || null }),
+        ...(dados.data_fim !== undefined && { data_fim: dados.data_fim || null }),
       };
 
       return await PeriodoLetivoModel.criarPeriodoLetivo(dadosLimpos);
@@ -167,10 +181,32 @@ class PeriodoLetivoService {
       const dadosLimpos: any = {};
       if (dados.bimestre !== undefined) dadosLimpos.bimestre = Number(dados.bimestre);
       if (dados.ano_letivo_id) dadosLimpos.ano_letivo_id = dados.ano_letivo_id.trim();
+      if (dados.data_inicio !== undefined) dadosLimpos.data_inicio = dados.data_inicio || null;
+      if (dados.data_fim !== undefined) dadosLimpos.data_fim = dados.data_fim || null;
 
       return await PeriodoLetivoModel.atualizarPeriodoLetivo(periodo_letivo_id, dadosLimpos);
     } catch (error) {
       throw new Error(`Erro no service ao atualizar período letivo: ${error}`);
+    }
+  }
+
+  // Ativar período letivo: aplica em todas as matrículas ativas do ano letivo correspondente
+  static async ativarPeriodoEmMatriculas(periodo_letivo_id: string): Promise<{ total: number }> {
+    try {
+      if (!periodo_letivo_id?.trim()) {
+        throw new Error('ID do período letivo é obrigatório');
+      }
+
+      const periodo = await PeriodoLetivoModel.buscarPeriodoLetivoPorId(periodo_letivo_id);
+      if (!periodo) {
+        throw new Error('Período letivo não encontrado');
+      }
+
+      const total = await PeriodoLetivoModel.ativarPeriodoEmMatriculas(periodo_letivo_id, periodo.ano_letivo_id);
+
+      return { total };
+    } catch (error) {
+      throw new Error(`Erro no service ao ativar período: ${error}`);
     }
   }
 
@@ -207,8 +243,8 @@ class PeriodoLetivoService {
       }
 
       const bimestres: PeriodoLetivo[] = [];
-      
-      for (let bimestre = 1; bimestre <= 4; bimestre++) {
+
+      for (let bimestre = 1; bimestre <= 3; bimestre++) {
         // Verificar se o bimestre já existe
         const existe = await PeriodoLetivoModel.verificarBimestreExiste(bimestre, ano_letivo_id);
         
