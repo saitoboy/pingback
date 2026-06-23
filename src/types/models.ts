@@ -234,6 +234,23 @@ export interface ConteudoAula {
   updated_at: Date;
 }
 
+export type StatusRegistroDiario = 'rascunho' | 'concluido';
+
+export interface RegistroDiario {
+  registro_diario_id: string;
+  turma_disciplina_professor_id: string;
+  data_aula: Date;
+  resumo: string; // "O que foi feito" (HTML do editor rico)
+  conteudo_programatico?: string; // HTML
+  metodologia?: string;
+  recursos?: string[]; // Recursos utilizados
+  observacoes?: string; // HTML
+  fotos?: string[]; // Imagens em base64 (opcional)
+  status: StatusRegistroDiario;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface GradeHorarioProfessor {
   grade_horario_id: string;
   turma_disciplina_professor_id: string;
