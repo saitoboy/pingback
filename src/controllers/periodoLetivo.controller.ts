@@ -305,6 +305,37 @@ class PeriodoLetivoController {
     }
   }
 
+  // Ativar período letivo em todas as matrículas ativas do ano
+  static async ativarPeriodo(req: Request, res: Response): Promise<void> {
+    try {
+      const { periodo_letivo_id } = req.params;
+
+      logInfo(`🔔 Ativando período letivo ${periodo_letivo_id} para matrículas`, 'controller');
+
+      const resultado = await PeriodoLetivoService.ativarPeriodoEmMatriculas(periodo_letivo_id);
+
+      logSuccess(`✅ Período ativado em ${resultado.total} matrículas`, 'controller');
+      res.status(200).json({
+        sucesso: true,
+        mensagem: `Período ativado em ${resultado.total} matrícula(s)`,
+        dados: resultado
+      });
+    } catch (error) {
+      logError('❌ Erro ao ativar período', 'controller', error);
+
+      if (error instanceof Error && error.message.includes('não encontrado')) {
+        res.status(404).json({ sucesso: false, mensagem: error.message });
+        return;
+      }
+
+      res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro interno do servidor',
+        erro: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
   // Criar todos os bimestres para um ano letivo
   static async criarTodosBimestres(req: Request, res: Response): Promise<void> {
     try {

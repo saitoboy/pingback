@@ -89,6 +89,30 @@ class MatriculaAlunoModel {
       .orderBy('a.sobrenome_aluno', 'asc');
   }
 
+  // Buscar matrículas por período letivo ativo
+  static async buscarMatriculasPorPeriodo(periodo_letivo_id: string): Promise<MatriculaAluno[]> {
+    if (!periodo_letivo_id?.trim()) {
+      throw new Error('ID do período letivo é obrigatório');
+    }
+
+    return await connection('matricula_aluno')
+      .where({ periodo_letivo_id, status: 'ativo' })
+      .select('*')
+      .orderBy('created_at', 'desc');
+  }
+
+  // Ativar período letivo em todas as matrículas ativas de um ano letivo
+  static async ativarPeriodoEmMatriculas(periodo_letivo_id: string, ano_letivo_id: string): Promise<number> {
+    const atualizados = await connection('matricula_aluno')
+      .where({ ano_letivo_id, status: 'ativo' })
+      .update({
+        periodo_letivo_id,
+        updated_at: connection.fn.now(),
+      });
+
+    return atualizados;
+  }
+
   // Buscar matrículas por ano letivo
   static async buscarMatriculasPorAnoLetivo(ano_letivo_id: string): Promise<MatriculaAluno[]> {
     if (!ano_letivo_id?.trim()) {
@@ -233,13 +257,14 @@ class MatriculaAlunoModel {
     // Gerar RA automaticamente
     const ra = await this.gerarProximoRA(dadosMatricula.ano_letivo_id, dadosMatricula.turma_id);
 
-    const novaMatricula = {
+    const novaMatricula: any = {
       ra,
       aluno_id: dadosMatricula.aluno_id,
       turma_id: dadosMatricula.turma_id,
       ano_letivo_id: dadosMatricula.ano_letivo_id,
       data_matricula: dadosMatricula.data_matricula,
-      status: dadosMatricula.status || 'ativo'
+      status: dadosMatricula.status || 'ativo',
+      ...(dadosMatricula.periodo_letivo_id !== undefined && { periodo_letivo_id: dadosMatricula.periodo_letivo_id }),
     };
 
     const [matriculaCriada] = await connection('matricula_aluno')

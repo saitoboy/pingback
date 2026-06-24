@@ -40,8 +40,9 @@ export interface Aluno {
   endereco_aluno: string;
   bairro_aluno: string;
   cep_aluno: string;
-  religiao_id: string;
-  certidao_id: string;
+  religiao_id?: string;
+  certidao_id?: string;
+  foto_aluno?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -175,6 +176,7 @@ export interface MatriculaAluno {
   aluno_id: string;
   turma_id: string;
   ano_letivo_id: string;
+  periodo_letivo_id?: string | null;
   data_matricula: Date;
   data_saida?: Date;
   motivo_saida?: string;
@@ -213,6 +215,7 @@ export interface TurmaDisciplinaProfessor {
 export interface Aula {
   aula_id: string;
   turma_disciplina_professor_id: string;
+  periodo_letivo_id?: string | null;
   data_aula: Date;
   hora_inicio: string;
   hora_fim: string;
@@ -231,6 +234,23 @@ export interface ConteudoAula {
   updated_at: Date;
 }
 
+export type StatusRegistroDiario = 'rascunho' | 'concluido';
+
+export interface RegistroDiario {
+  registro_diario_id: string;
+  turma_disciplina_professor_id: string;
+  data_aula: Date;
+  resumo: string; // "O que foi feito" (HTML do editor rico)
+  conteudo_programatico?: string; // HTML
+  metodologia?: string;
+  recursos?: string[]; // Recursos utilizados
+  observacoes?: string; // HTML
+  fotos?: string[]; // Imagens em base64 (opcional)
+  status: StatusRegistroDiario;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface GradeHorarioProfessor {
   grade_horario_id: string;
   turma_disciplina_professor_id: string;
@@ -245,6 +265,8 @@ export interface PeriodoLetivo {
   periodo_letivo_id: string;
   bimestre: number;
   ano_letivo_id: string;
+  data_inicio?: Date | string | null;
+  data_fim?: Date | string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -355,9 +377,10 @@ export interface FichaCadastroCompleta {
     endereco_aluno: string;
     bairro_aluno: string;
     cep_aluno: string;
-    religiao_id: string;
+    religiao_id?: string;
+    foto_aluno?: string;
   };
-  certidao: {
+  certidao?: {
     livro_certidao: string;
     matricula_certidao: string;
     termo_certidao: string;
@@ -429,7 +452,7 @@ export interface FichaCadastroCompleta {
 // Interface para resposta da ficha cadastro
 export interface FichaCadastroResposta {
   aluno: Aluno;
-  certidao: CertidaoNascimento;
+  certidao?: CertidaoNascimento;
   responsaveis: Responsavel[];
   dados_saude: DadosSaude;
   diagnostico: Diagnostico;

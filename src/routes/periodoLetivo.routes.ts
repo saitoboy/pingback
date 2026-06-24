@@ -15,10 +15,11 @@ router.get('/:periodo_letivo_id', PeriodoLetivoController.buscarPeriodoLetivoPor
 router.get('/ano/:ano_letivo_id', PeriodoLetivoController.buscarPeriodosLetivosPorAno);
 router.get('/bimestre/:bimestre/ano/:ano_letivo_id', PeriodoLetivoController.buscarPeriodoLetivoPorBimestreEAno);
 
-// Rotas que precisam de permissão de ADMIN ou SECRETARIO
-router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), PeriodoLetivoController.criarPeriodoLetivo);
-router.post('/criar-todos/:ano_letivo_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), PeriodoLetivoController.criarTodosBimestres);
-router.put('/:periodo_letivo_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), PeriodoLetivoController.atualizarPeriodoLetivo);
-router.delete('/:periodo_letivo_id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), PeriodoLetivoController.deletarPeriodoLetivo);
+// Rotas exclusivas do ADMIN
+router.post('/', autorizarPor([TipoUsuario.ADMIN]), PeriodoLetivoController.criarPeriodoLetivo);
+router.post('/criar-todos/:ano_letivo_id', autorizarPor([TipoUsuario.ADMIN]), PeriodoLetivoController.criarTodosBimestres);
+router.post('/:periodo_letivo_id/ativar', autorizarPor([TipoUsuario.ADMIN]), PeriodoLetivoController.ativarPeriodo);
+router.put('/:periodo_letivo_id', autorizarPor([TipoUsuario.ADMIN]), PeriodoLetivoController.atualizarPeriodoLetivo);
+router.delete('/:periodo_letivo_id', autorizarPor([TipoUsuario.ADMIN]), PeriodoLetivoController.deletarPeriodoLetivo);
 
 export default router;

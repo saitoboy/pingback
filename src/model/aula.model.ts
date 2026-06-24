@@ -161,7 +161,10 @@ export const buscarComDetalhes = async (aula_id?: string): Promise<any> => {
       'd.nome_disciplina',
       'p.professor_id',
       'u.nome_usuario as nome_professor',
-      'u.email_usuario as email_professor'
+      'u.email_usuario as email_professor',
+      'pl.bimestre as trimestre',
+      'pl.data_inicio as periodo_data_inicio',
+      'pl.data_fim as periodo_data_fim'
     )
     .from(`${tabela} as a`)
     .join('turma_disciplina_professor as tdp', 'a.turma_disciplina_professor_id', 'tdp.turma_disciplina_professor_id')
@@ -171,6 +174,7 @@ export const buscarComDetalhes = async (aula_id?: string): Promise<any> => {
     .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
     .join('professor as p', 'tdp.professor_id', 'p.professor_id')
     .join('usuario as u', 'p.usuario_id', 'u.usuario_id')
+    .leftJoin('periodo_letivo as pl', 'a.periodo_letivo_id', 'pl.periodo_letivo_id')
     .orderBy('a.data_aula', 'desc')
     .orderBy('a.hora_inicio', 'asc');
 

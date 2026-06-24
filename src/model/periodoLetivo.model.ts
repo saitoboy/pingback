@@ -112,6 +112,18 @@ class PeriodoLetivoModel {
     }
   }
 
+  // Ativar período letivo em todas as matrículas ativas do mesmo ano letivo
+  static async ativarPeriodoEmMatriculas(periodo_letivo_id: string, ano_letivo_id: string): Promise<number> {
+    const atualizados = await connection('matricula_aluno')
+      .where({ ano_letivo_id, status: 'ativo' })
+      .update({
+        periodo_letivo_id,
+        updated_at: connection.fn.now(),
+      });
+
+    return atualizados;
+  }
+
   // Deletar período letivo
   static async deletarPeriodoLetivo(periodo_letivo_id: string): Promise<boolean> {
     try {

@@ -21,18 +21,35 @@ class FichaCadastroService {
     try {
       logger.info('🚀 Iniciando processamento de ficha cadastro completa', 'ficha-cadastro');
 
-      // 1. Criar certidão de nascimento primeiro
-      logger.info('📄 Criando certidão de nascimento...', 'ficha-cadastro');
-      const certidao = await CertidaoModel.criar(fichaCadastro.certidao);
-      logger.success(`✅ Certidão criada: ${certidao.certidao_id}`, 'ficha-cadastro');
+      // 1. Criar certidão de nascimento (opcional)
+      let certidao: import('../types/models').CertidaoNascimento | undefined;
+      const temCertidao = fichaCadastro.certidao?.livro_certidao?.trim();
+      if (temCertidao) {
+        logger.info('📄 Criando certidão de nascimento...', 'ficha-cadastro');
+        certidao = await CertidaoModel.criar(fichaCadastro.certidao!);
+        logger.success(`✅ Certidão criada: ${certidao.certidao_id}`, 'ficha-cadastro');
+      } else {
+        logger.info('📄 Certidão não informada — campo opcional ignorado', 'ficha-cadastro');
+      }
 
-      // 2. Criar aluno vinculando à certidão
+      // 2. Criar aluno (vincula certidão apenas se existir)
       logger.info('👤 Criando aluno...', 'ficha-cadastro');
+      const nullIfEmpty = (v?: string) => (v && v.trim() !== '' ? v.trim() : null);
       const dadosAluno = {
-        ...fichaCadastro.aluno,
-        certidao_id: certidao.certidao_id
+        nome_aluno: fichaCadastro.aluno.nome_aluno,
+        sobrenome_aluno: fichaCadastro.aluno.sobrenome_aluno,
+        data_nascimento_aluno: fichaCadastro.aluno.data_nascimento_aluno,
+        cpf_aluno: fichaCadastro.aluno.cpf_aluno,
+        rg_aluno: nullIfEmpty(fichaCadastro.aluno.rg_aluno) ?? '',
+        naturalidade_aluno: nullIfEmpty(fichaCadastro.aluno.naturalidade_aluno) ?? '',
+        endereco_aluno: nullIfEmpty(fichaCadastro.aluno.endereco_aluno) ?? '',
+        bairro_aluno: nullIfEmpty(fichaCadastro.aluno.bairro_aluno) ?? '',
+        cep_aluno: nullIfEmpty(fichaCadastro.aluno.cep_aluno) ?? '',
+        religiao_id: nullIfEmpty(fichaCadastro.aluno.religiao_id) ?? undefined,
+        foto_aluno: nullIfEmpty(fichaCadastro.aluno.foto_aluno) ?? undefined,
+        ...(certidao ? { certidao_id: certidao.certidao_id } : {})
       };
-      const aluno = await AlunoModel.criar(dadosAluno);
+      const aluno = await AlunoModel.criar(dadosAluno as any);
       logger.success(`✅ Aluno criado: ${aluno.aluno_id}`, 'ficha-cadastro');
 
       // 3. Criar responsáveis vinculados ao aluno
@@ -119,7 +136,7 @@ class FichaCadastroService {
 
       const resposta: FichaCadastroResposta = {
         aluno,
-        certidao,
+        ...(certidao ? { certidao } : {}),
         responsaveis,
         dados_saude: dadosSaude,
         diagnostico,
@@ -164,12 +181,10 @@ class FichaCadastroService {
         throw new Error('Dados inconsistentes: aluno não encontrado');
       }
 
-      // 3. Buscar certidão do aluno
-      const certidao = await CertidaoModel.buscarPorId(aluno.certidao_id);
-      if (!certidao) {
-        logger.error(`❌ Certidão não encontrada para aluno: ${aluno.aluno_id}`, 'ficha-cadastro');
-        throw new Error('Dados inconsistentes: certidão não encontrada');
-      }
+      // 3. Buscar certidão do aluno (opcional)
+      const certidao = aluno.certidao_id
+        ? await CertidaoModel.buscarPorId(aluno.certidao_id)
+        : undefined;
 
       // 4. Buscar responsáveis do aluno
       const responsaveis = await ResponsavelModel.listarPorAluno(aluno.aluno_id);
@@ -190,7 +205,7 @@ class FichaCadastroService {
 
       const fichaCadastro: FichaCadastroResposta = {
         aluno,
-        certidao,
+        ...(certidao ? { certidao } : {}),
         responsaveis,
         dados_saude: dadosSaude,
         diagnostico,
@@ -273,11 +288,6 @@ class FichaCadastroService {
     }
     if (!fichaCadastro.aluno?.cpf_aluno?.trim()) {
       erros.push('CPF do aluno é obrigatório');
-    }
-
-    // Validar certidão
-    if (!fichaCadastro.certidao?.livro_certidao?.trim()) {
-      erros.push('Livro da certidão é obrigatório');
     }
 
     // Validar responsáveis
