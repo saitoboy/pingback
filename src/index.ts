@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 import { AddressInfo } from "net";
 import connection from "./connection";
@@ -184,6 +186,17 @@ app.get("/test-connection", async (req: Request, res: Response) => {
     });
   }
 });
+
+// Documentação Swagger (Swagger UI em /docs, JSON em /docs.json)
+app.get('/docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'Pinguinho API Docs',
+  swaggerOptions: { persistAuthorization: true },
+}));
+logSuccess('📚 Swagger UI disponível em /docs', 'server');
 
 // Registrar as rotas
 logInfo('📝 Registrando rotas da aplicação...', 'route');

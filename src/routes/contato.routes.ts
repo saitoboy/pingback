@@ -3,8 +3,26 @@ import ContatoController from '../controllers/contato.controller';
 
 const router = Router();
 
-// Rota pública para envio de mensagem de contato (não precisa de autenticação)
+/**
+ * @openapi
+ * /contato:
+ *   post:
+ *     tags: [Contato]
+ *     summary: Enviar mensagem de contato (público, sem autenticação)
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/ContatoInput' }
+ *     responses:
+ *       200:
+ *         description: Mensagem enviada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       400: { $ref: '#/components/responses/ErroValidacao' }
+ */
 router.post('/', ContatoController.enviarMensagem);
 
 export default router;
-

@@ -39,13 +39,17 @@
     "knex": "^3.1.0",
     "nodemailer": "^9.0.1",
     "pg": "^8.16.3",
-    "postgresql": "^0.0.1"
+    "postgresql": "^0.0.1",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
     "@types/nodemailer": "^7.0.4",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }

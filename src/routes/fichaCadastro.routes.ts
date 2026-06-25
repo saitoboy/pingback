@@ -8,16 +8,81 @@ const router = Router();
 // Todas as rotas precisam de autenticação
 router.use(autenticar);
 
-// Rota para listar todas as fichas (todos os usuários autenticados podem consultar)
+/**
+ * @openapi
+ * /ficha-cadastro:
+ *   get:
+ *     tags: [Ficha Cadastro]
+ *     summary: Listar todas as fichas de cadastro
+ *     responses:
+ *       200:
+ *         description: Lista
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       401: { $ref: '#/components/responses/NaoAutorizado' }
+ *   post:
+ *     tags: [Ficha Cadastro]
+ *     summary: Processar ficha de cadastro completa (ADMIN/SECRETARIO)
+ *     description: >
+ *       Cria em uma única operação o aluno, certidão, responsáveis, dados de saúde,
+ *       diagnóstico e matrícula. Retorna a ficha completa com o RA gerado.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               aluno: { $ref: '#/components/schemas/AlunoInput' }
+ *               certidao: { $ref: '#/components/schemas/CertidaoInput' }
+ *               responsaveis: { type: array, items: { $ref: '#/components/schemas/ResponsavelInput' } }
+ *               dados_saude: { $ref: '#/components/schemas/DadosSaude' }
+ *               diagnostico: { $ref: '#/components/schemas/Diagnostico' }
+ *               matricula: { $ref: '#/components/schemas/MatriculaAlunoInput' }
+ *     responses:
+ *       201:
+ *         description: Ficha processada com RA gerado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
 router.get('/', FichaCadastroController.listarTodasFichas);
 
-// Rota para obter modelo/template da ficha (todos os usuários autenticados podem ver)
+/**
+ * @openapi
+ * /ficha-cadastro/modelo:
+ *   get:
+ *     tags: [Ficha Cadastro]
+ *     summary: Obter modelo/template da ficha
+ *     responses:
+ *       200:
+ *         description: Modelo
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ */
 router.get('/modelo', FichaCadastroController.obterModeloFicha);
 
-// Rota para buscar ficha por RA (todos os usuários autenticados podem consultar)
+/**
+ * @openapi
+ * /ficha-cadastro/ra/{ra}:
+ *   get:
+ *     tags: [Ficha Cadastro]
+ *     summary: Buscar ficha completa por RA
+ *     parameters:
+ *       - { in: path, name: ra, required: true, schema: { type: string } }
+ *     responses:
+ *       200:
+ *         description: Ficha completa
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
 router.get('/ra/:ra', FichaCadastroController.buscarFichaPorRA);
 
-// Rota para processar ficha cadastro completa (apenas ADMIN e SECRETARIO)
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), FichaCadastroController.processarFichaCadastro);
 
 export default router;

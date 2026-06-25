@@ -8,22 +8,101 @@ const router = Router();
 // Todas as rotas precisam de autenticação
 router.use(autenticar);
 
-// Rota para listar todas as disciplinas (todos os usuários autenticados podem ver)
+/**
+ * @openapi
+ * /disciplina:
+ *   get:
+ *     tags: [Disciplina]
+ *     summary: Listar disciplinas
+ *     responses:
+ *       200:
+ *         description: Lista
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/Disciplina' } }
+ *       401: { $ref: '#/components/responses/NaoAutorizado' }
+ *   post:
+ *     tags: [Disciplina]
+ *     summary: Criar disciplina (ADMIN/SECRETARIO)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/DisciplinaInput' }
+ *     responses:
+ *       201:
+ *         description: Criada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Disciplina' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
 router.get('/', DisciplinaController.listarDisciplinas);
 
-// Rota para buscar disciplina por ID (todos os usuários autenticados podem ver)
+/**
+ * @openapi
+ * /disciplina/{id}:
+ *   get:
+ *     tags: [Disciplina]
+ *     summary: Buscar disciplina por ID
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Disciplina
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Disciplina' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   put:
+ *     tags: [Disciplina]
+ *     summary: Atualizar disciplina (ADMIN/SECRETARIO)
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/DisciplinaInput' }
+ *     responses:
+ *       200:
+ *         description: Atualizada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Disciplina' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   delete:
+ *     tags: [Disciplina]
+ *     summary: Deletar disciplina (apenas ADMIN)
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Removida }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
 router.get('/:id', DisciplinaController.buscarDisciplinaPorId);
 
-// Rota para buscar disciplinas por nome (todos os usuários autenticados podem buscar)
+/**
+ * @openapi
+ * /disciplina/buscar/{nome}:
+ *   get:
+ *     tags: [Disciplina]
+ *     summary: Buscar disciplinas por nome
+ *     parameters:
+ *       - { in: path, name: nome, required: true, schema: { type: string } }
+ *     responses:
+ *       200:
+ *         description: Disciplinas
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/Disciplina' } }
+ */
 router.get('/buscar/:nome', DisciplinaController.buscarDisciplinasPorNome);
 
-// Rota para criar nova disciplina (apenas ADMIN e SECRETARIO)
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), DisciplinaController.criarDisciplina);
-
-// Rota para atualizar disciplina (apenas ADMIN e SECRETARIO)
 router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), DisciplinaController.atualizarDisciplina);
-
-// Rota para deletar disciplina (apenas ADMIN)
 router.delete('/:id', autorizarPor([TipoUsuario.ADMIN]), DisciplinaController.deletarDisciplina);
 
 export default router;
