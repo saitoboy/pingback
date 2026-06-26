@@ -40,6 +40,8 @@ import professorDisciplinaRoutes from './routes/professorDisciplina.routes';
 import contatoRoutes from './routes/contato.routes';
 import gradeHorarioProfessorRoutes from './routes/gradeHorarioProfessor.routes';
 import feriadoRoutes from './routes/feriado.routes';
+import turmaBreakRoutes from './routes/turmaBreak.routes';
+import turmaSlotRoutes from './routes/turmaSlot.routes';
 
 const app = express();
 
@@ -306,6 +308,8 @@ app.use('/contato', contatoRoutes);
 logDebug('📧 Rotas de contato registradas', 'route');
 
 app.use('/grade-horario', gradeHorarioProfessorRoutes);
+app.use('/turma-break', turmaBreakRoutes);
+app.use('/turma-slot', turmaSlotRoutes);
 logDebug('📅 Rotas de grade de horários registradas', 'route');
 
 app.use('/feriado', feriadoRoutes);

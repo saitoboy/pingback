@@ -80,7 +80,7 @@ export class GradeHorarioProfessorController {
 
   static async criar(req: Request, res: Response) {
     try {
-      const { turma_disciplina_professor_id, dia_semana, hora_inicio, hora_fim } = req.body;
+      const { turma_disciplina_professor_id, dia_semana, hora_inicio, hora_fim, observacao } = req.body;
 
       if (!turma_disciplina_professor_id || dia_semana === undefined || !hora_inicio || !hora_fim) {
         return res.status(400).json({
@@ -93,8 +93,9 @@ export class GradeHorarioProfessorController {
         turma_disciplina_professor_id,
         dia_semana: parseInt(dia_semana),
         hora_inicio,
-        hora_fim
-      });
+        hora_fim,
+        observacao: observacao || null,
+      } as any);
 
       logSuccess('Grade de horário criada', 'controller', { grade_horario_id: novaGrade.grade_horario_id });
       res.status(201).json({
@@ -128,7 +129,8 @@ export class GradeHorarioProfessorController {
           turma_disciplina_professor_id: g.turma_disciplina_professor_id,
           dia_semana: parseInt(g.dia_semana),
           hora_inicio: g.hora_inicio,
-          hora_fim: g.hora_fim
+          hora_fim: g.hora_fim,
+          observacao: g.observacao || null,
         }))
       );
 
