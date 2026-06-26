@@ -116,10 +116,10 @@ const swaggerDefinition: SwaggerDefinition = {
       },
       LoginInput: {
         type: 'object',
-        required: ['email_usuario', 'senha_usuario'],
+        required: ['email', 'senha'],
         properties: {
-          email_usuario: { type: 'string', format: 'email', example: 'admin@escola.com' },
-          senha_usuario: { type: 'string', format: 'password', example: 'senha123' },
+          email: { type: 'string', format: 'email', example: 'admin@escola.com' },
+          senha: { type: 'string', format: 'password', example: 'senha123' },
         },
       },
       LoginResposta: {
@@ -138,34 +138,34 @@ const swaggerDefinition: SwaggerDefinition = {
       },
       RegistrarInput: {
         type: 'object',
-        required: ['nome_usuario', 'email_usuario', 'senha_usuario', 'tipo_usuario_id'],
+        required: ['nome_usuario', 'email', 'senha', 'tipo_usuario_id'],
         properties: {
           nome_usuario: { type: 'string', example: 'Maria Silva' },
-          email_usuario: { type: 'string', format: 'email', example: 'maria@escola.com' },
-          senha_usuario: { type: 'string', format: 'password', example: 'senha123' },
+          email: { type: 'string', format: 'email', example: 'maria@escola.com' },
+          senha: { type: 'string', format: 'password', example: 'senha123' },
           tipo_usuario_id: { type: 'string', enum: ['admin', 'secretario', 'professor'] },
         },
       },
       ForgotPasswordInput: {
         type: 'object',
-        required: ['email_usuario'],
+        required: ['email'],
         properties: {
-          email_usuario: { type: 'string', format: 'email', example: 'maria@escola.com' },
+          email: { type: 'string', format: 'email', example: 'maria@escola.com' },
         },
       },
       VerifyResetCodeInput: {
         type: 'object',
-        required: ['email_usuario', 'codigo'],
+        required: ['email', 'codigo'],
         properties: {
-          email_usuario: { type: 'string', format: 'email' },
+          email: { type: 'string', format: 'email' },
           codigo: { type: 'string', example: '123456' },
         },
       },
       ResetPasswordInput: {
         type: 'object',
-        required: ['email_usuario', 'codigo', 'nova_senha'],
+        required: ['email', 'codigo', 'nova_senha'],
         properties: {
-          email_usuario: { type: 'string', format: 'email' },
+          email: { type: 'string', format: 'email' },
           codigo: { type: 'string', example: '123456' },
           nova_senha: { type: 'string', format: 'password' },
         },
@@ -175,7 +175,7 @@ const swaggerDefinition: SwaggerDefinition = {
         properties: {
           usuario_id: { type: 'string', format: 'uuid' },
           nome_usuario: { type: 'string' },
-          email_usuario: { type: 'string', format: 'email' },
+          email: { type: 'string', format: 'email' },
           tipo_usuario_id: { type: 'string', enum: ['admin', 'secretario', 'professor'] },
           created_at: { type: 'string', format: 'date-time' },
           updated_at: { type: 'string', format: 'date-time' },

@@ -9,8 +9,7 @@ export class AlunoController {
       const camposEsperados = [
         'nome_aluno', 'sobrenome_aluno', 'data_nascimento_aluno',
         'cpf_aluno', 'rg_aluno', 'naturalidade_aluno',
-        'endereco_aluno', 'bairro_aluno', 'cep_aluno',
-        'religiao_id', 'certidao_id'
+        'endereco_aluno', 'bairro_aluno', 'cep_aluno'
       ];
       
       const camposFaltando = camposEsperados.filter(campo => !(campo in req.body));
@@ -25,8 +24,7 @@ export class AlunoController {
       const {
         nome_aluno, sobrenome_aluno, data_nascimento_aluno,
         cpf_aluno, rg_aluno, naturalidade_aluno,
-        endereco_aluno, bairro_aluno, cep_aluno,
-        religiao_id, certidao_id
+        endereco_aluno, bairro_aluno, cep_aluno
       } = req.body;
       
       // Validação de campos vazios
@@ -40,8 +38,6 @@ export class AlunoController {
       if (!endereco_aluno) camposVazios.push('endereco_aluno');
       if (!bairro_aluno) camposVazios.push('bairro_aluno');
       if (!cep_aluno) camposVazios.push('cep_aluno');
-      if (!religiao_id) camposVazios.push('religiao_id');
-      if (!certidao_id) camposVazios.push('certidao_id');
       
       if (camposVazios.length > 0) {
         logError(`Erro ao criar aluno: campos sem valor: ${camposVazios.join(', ')}`, 'controller', req.body);
@@ -86,9 +82,7 @@ export class AlunoController {
         naturalidade_aluno: naturalidade_aluno.trim(),
         endereco_aluno: endereco_aluno.trim(),
         bairro_aluno: bairro_aluno.trim(),
-        cep_aluno: cepLimpo,
-        religiao_id,
-        certidao_id
+        cep_aluno: cepLimpo
       });
       
       if (!novoAluno) {
@@ -108,12 +102,6 @@ export class AlunoController {
       });
       
     } catch (error: any) {
-      if (error.code === '23503') {
-        logError('Erro ao criar aluno: FK constraint (religião ou certidão inválida)', 'controller', error);
-        return res.status(400).json({ 
-          mensagem: 'religiao_id ou certidao_id inválidos. Verifique se existem no sistema.' 
-        });
-      }
       
       if (error.code === '23505') {
         logError('Erro ao criar aluno: CPF ou RG duplicado (constraint)', 'controller', error);

@@ -148,8 +148,12 @@ class AlocacaoProfessorService {
             duplicadas.push(alocacao);
           } else {
             // Outro professor já leciona essa disciplina nessa turma = conflito
+            const letraTurma = ocupado.nome_turma.trim().split(/\s+/).pop() || ocupado.nome_turma;
+            const turmaFormatada = letraTurma.length <= 2
+              ? `${ocupado.nome_serie} · Turma ${letraTurma.toUpperCase()}`
+              : ocupado.nome_turma;
             conflitos.push(
-              `${ocupado.nome_disciplina} em ${ocupado.nome_serie} - ${ocupado.nome_turma} já está com ${ocupado.nome_professor}`
+              `${ocupado.nome_disciplina} em ${turmaFormatada} já está com ${ocupado.nome_professor}`
             );
           }
           continue;

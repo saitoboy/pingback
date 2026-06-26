@@ -59,6 +59,22 @@ router.get('/ano/:ano', AnoLetivoController.buscarAnoLetivoPorAno);
 
 /**
  * @openapi
+ * /ano-letivo/ativo:
+ *   get:
+ *     tags: [Ano Letivo]
+ *     summary: Buscar ano letivo ativo
+ *     responses:
+ *       200:
+ *         description: Ano letivo ativo
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AnoLetivo' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
+router.get('/ativo', AnoLetivoController.buscarAnoLetivoAtivo);
+
+/**
+ * @openapi
  * /ano-letivo/{ano_letivo_id}:
  *   get:
  *     tags: [Ano Letivo]

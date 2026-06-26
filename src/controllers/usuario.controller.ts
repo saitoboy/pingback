@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import * as UsuarioModel from '../model/usuario.model';
 import { logError, logSuccess, logInfo } from '../utils/logger';
 
@@ -93,8 +94,8 @@ export class UsuarioController {
   static async atualizarUsuario(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { nome_usuario, email_usuario, tipo_usuario_id } = req.body;
-      
+      const { nome_usuario, email_usuario, tipo_usuario_id, senha_usuario } = req.body;
+
       if (!id) {
         logError('❌ ID do usuário não fornecido', 'controller');
         return res.status(400).json({
@@ -126,11 +127,12 @@ export class UsuarioController {
       }
 
       logInfo(`✏️ Atualizando usuário: ${id}`, 'controller');
-      
+
       const dadosAtualizacao: any = {};
       if (nome_usuario) dadosAtualizacao.nome_usuario = nome_usuario;
       if (email_usuario) dadosAtualizacao.email_usuario = email_usuario;
       if (tipo_usuario_id) dadosAtualizacao.tipo_usuario_id = tipo_usuario_id;
+      if (senha_usuario) dadosAtualizacao.senha_usuario = await bcrypt.hash(senha_usuario, 10);
 
       const usuarioAtualizado = await UsuarioModel.atualizar(id, dadosAtualizacao);
       

@@ -39,17 +39,25 @@ import alocacaoProfessorRoutes from './routes/alocacaoProfessor.routes';
 import professorDisciplinaRoutes from './routes/professorDisciplina.routes';
 import contatoRoutes from './routes/contato.routes';
 import gradeHorarioProfessorRoutes from './routes/gradeHorarioProfessor.routes';
+import feriadoRoutes from './routes/feriado.routes';
 
 const app = express();
 
 logInfo('🚀 Inicializando Sistema Escolar Pinguinho API', 'server');
 
+const HOST = process.env.HOST || 'localhost';
+const PORT = Number(process.env.PORT) || 3003;
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5174',
+  // Própria origem da API (Swagger UI em /docs chama a si mesmo)
+  `http://localhost:${PORT}`,
+  `http://${HOST}:${PORT}`,
   'https://pinguinho-pingfront.hvko68.easypanel.host',
   'https://pinguinho-pingfront-test.hvko68.easypanel.host',
+  process.env.SWAGGER_SERVER_URL,
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -300,6 +308,9 @@ logDebug('📧 Rotas de contato registradas', 'route');
 app.use('/grade-horario', gradeHorarioProfessorRoutes);
 logDebug('📅 Rotas de grade de horários registradas', 'route');
 
+app.use('/feriado', feriadoRoutes);
+logDebug('🎉 Rotas de feriados registradas', 'route');
+
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
 // Middleware de tratamento de erros global - DEVE ser o ÚLTIMO middleware
@@ -322,9 +333,6 @@ app.use((req: Request, res: Response) => {
     mensagem: 'Rota não encontrada'
   });
 });
-
-const HOST = process.env.HOST || 'localhost';
-const PORT = Number(process.env.PORT) || 3003;
 
 const server = app.listen(PORT, HOST, () => {
   if (server) {

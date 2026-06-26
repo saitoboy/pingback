@@ -158,6 +158,40 @@ export class AnoLetivoController {
     }
   }
 
+  static async buscarAnoLetivoAtivo(req: Request, res: Response) {
+    try {
+      const anoLetivo = await AnoLetivoService.buscarAtivo();
+
+      if (!anoLetivo) {
+        return res.status(404).json({
+          sucesso: false,
+          mensagem: 'Nenhum ano letivo ativo encontrado',
+          erro: {
+            codigo: 'ANO_LETIVO_ATIVO_NAO_ENCONTRADO',
+            detalhes: 'Não há ano letivo marcado como ativo'
+          }
+        });
+      }
+
+      logSuccess('Ano letivo ativo encontrado', 'controller', {
+        ano_letivo_id: anoLetivo.ano_letivo_id
+      });
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Ano letivo ativo obtido com sucesso',
+        dados: anoLetivo
+      });
+    } catch (error: any) {
+      logError('Erro interno ao buscar ano letivo ativo', 'controller', error);
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro interno do servidor',
+        erro: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
   static async buscarAnoLetivoPorId(req: Request, res: Response) {
     try {
       const { ano_letivo_id } = req.params;
