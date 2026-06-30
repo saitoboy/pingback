@@ -85,4 +85,45 @@ router.get('/ra/:ra', FichaCadastroController.buscarFichaPorRA);
 
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), FichaCadastroController.processarFichaCadastro);
 
+/**
+ * @openapi
+ * /ficha-cadastro/lote:
+ *   post:
+ *     tags: [Ficha Cadastro]
+ *     summary: Processar várias fichas de cadastro em lote (ADMIN)
+ *     description: >
+ *       Recebe { fichas: FichaCadastroCompleta[] } e processa cada ficha em sua própria
+ *       transação (sucesso parcial). Retorna 201 (todas), 207 (parcial) ou 400 (nenhuma).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fichas:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     aluno: { $ref: '#/components/schemas/AlunoInput' }
+ *                     certidao: { $ref: '#/components/schemas/CertidaoInput' }
+ *                     responsaveis: { type: array, items: { $ref: '#/components/schemas/ResponsavelInput' } }
+ *                     dados_saude: { $ref: '#/components/schemas/DadosSaude' }
+ *                     diagnostico: { $ref: '#/components/schemas/Diagnostico' }
+ *                     matricula: { $ref: '#/components/schemas/MatriculaAlunoInput' }
+ *     responses:
+ *       201:
+ *         description: Todas as fichas processadas
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       207:
+ *         description: Sucesso parcial
+ *       400:
+ *         description: Nenhuma ficha criada
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
+router.post('/lote', autorizarPor([TipoUsuario.ADMIN]), FichaCadastroController.processarFichasCadastroLote);
+
 export default router;

@@ -153,6 +153,7 @@ router.get('/estatisticas/geral', AlunoController.obterEstatisticas);
 router.get('/:id', AlunoController.buscarAlunoPorId);
 
 router.post('/', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.criarAluno);
+router.post('/lote', autorizarPor([TipoUsuario.ADMIN]), AlunoController.criarAlunosEmLote);
 router.put('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.atualizarAluno);
 router.delete('/:id', autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]), AlunoController.removerAluno);
 

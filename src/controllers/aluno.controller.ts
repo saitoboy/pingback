@@ -118,6 +118,75 @@ export class AlunoController {
     }
   }
 
+  static async criarAlunosEmLote(req: Request, res: Response) {
+    try {
+      const { alunos } = req.body;
+
+      if (!Array.isArray(alunos) || alunos.length === 0) {
+        return res.status(400).json({ mensagem: 'Campo "alunos" deve ser array não vazio.' });
+      }
+
+      if (alunos.length > 100) {
+        return res.status(400).json({ mensagem: 'Máximo 100 alunos por lote.' });
+      }
+
+      const camposEsperados = [
+        'nome_aluno', 'sobrenome_aluno', 'data_nascimento_aluno',
+        'cpf_aluno', 'rg_aluno', 'naturalidade_aluno',
+        'endereco_aluno', 'bairro_aluno', 'cep_aluno'
+      ];
+
+      const errosValidacao: { indice: number; campos: string[] }[] = [];
+      const dadosProcessados = alunos.map((aluno: any, i: number) => {
+        const faltando = camposEsperados.filter(c => !aluno[c]);
+        if (faltando.length > 0) {
+          errosValidacao.push({ indice: i, campos: faltando });
+          return null;
+        }
+
+        const cpfLimpo = String(aluno.cpf_aluno).replace(/\D/g, '');
+        const cepLimpo = String(aluno.cep_aluno).replace(/\D/g, '');
+        const dataNascimento = new Date(aluno.data_nascimento_aluno);
+
+        if (cpfLimpo.length !== 11) { errosValidacao.push({ indice: i, campos: ['cpf_aluno (deve ter 11 dígitos)'] }); return null; }
+        if (cepLimpo.length !== 8) { errosValidacao.push({ indice: i, campos: ['cep_aluno (deve ter 8 dígitos)'] }); return null; }
+        if (isNaN(dataNascimento.getTime())) { errosValidacao.push({ indice: i, campos: ['data_nascimento_aluno (formato YYYY-MM-DD)'] }); return null; }
+
+        return {
+          nome_aluno: String(aluno.nome_aluno).trim(),
+          sobrenome_aluno: String(aluno.sobrenome_aluno).trim(),
+          data_nascimento_aluno: dataNascimento,
+          cpf_aluno: cpfLimpo,
+          rg_aluno: String(aluno.rg_aluno).trim(),
+          naturalidade_aluno: String(aluno.naturalidade_aluno).trim(),
+          endereco_aluno: String(aluno.endereco_aluno).trim(),
+          bairro_aluno: String(aluno.bairro_aluno).trim(),
+          cep_aluno: cepLimpo
+        };
+      });
+
+      if (errosValidacao.length > 0) {
+        return res.status(400).json({
+          mensagem: 'Erros de validação no lote.',
+          erros: errosValidacao
+        });
+      }
+
+      const resultado = await AlunoService.criarEmLote(dadosProcessados as any);
+
+      const status = resultado.falhas.length === 0 ? 201 : resultado.criados.length === 0 ? 400 : 207;
+      return res.status(status).json({
+        mensagem: `${resultado.criados.length} aluno(s) criado(s), ${resultado.falhas.length} falha(s).`,
+        criados: resultado.criados,
+        falhas: resultado.falhas
+      });
+
+    } catch (error: any) {
+      logError('Erro inesperado ao criar alunos em lote', 'controller', error);
+      return res.status(500).json({ mensagem: 'Erro interno do servidor.', detalhes: error.message });
+    }
+  }
+
   static async buscarAlunoPorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
