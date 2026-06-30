@@ -8,93 +8,261 @@ const router = Router();
 // Aplicar middleware de autenticação em todas as rotas
 router.use(autenticar);
 
-// GET /api/media-disciplina-bimestre - Listar todas as médias
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Listar médias (ADMIN/SECRETARIO/PROFESSOR)
+ *     responses:
+ *       200:
+ *         description: Lista
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/MediaDisciplinaBimestre' } }
+ *       401: { $ref: '#/components/responses/NaoAutorizado' }
+ *   post:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Criar média (ADMIN/SECRETARIO/PROFESSOR)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/MediaDisciplinaBimestreInput' }
+ *     responses:
+ *       201:
+ *         description: Criada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/MediaDisciplinaBimestre' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
+router.get('/',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.listarTodas
 );
 
-// GET /api/media-disciplina-bimestre/detalhes - Listar médias com detalhes
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/detalhes', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/detalhes:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Listar médias com detalhes
+ *     responses:
+ *       200:
+ *         description: Lista detalhada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ */
+router.get('/detalhes',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarComDetalhes
 );
 
-// GET /api/media-disciplina-bimestre/detalhes/:media_disciplina_bimestre_id - Buscar média com detalhes por ID
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/detalhes/:media_disciplina_bimestre_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/detalhes/{media_disciplina_bimestre_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar média com detalhes por ID
+ *     parameters:
+ *       - { in: path, name: media_disciplina_bimestre_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Média detalhada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
+router.get('/detalhes/:media_disciplina_bimestre_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarComDetalhes
 );
 
-// GET /api/media-disciplina-bimestre/matricula/:matricula_aluno_id - Buscar médias por matrícula
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/matricula/:matricula_aluno_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/matricula/{matricula_aluno_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar médias por matrícula
+ *     parameters:
+ *       - { in: path, name: matricula_aluno_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Médias
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/MediaDisciplinaBimestre' } }
+ */
+router.get('/matricula/:matricula_aluno_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarPorMatricula
 );
 
-// GET /api/media-disciplina-bimestre/aluno/:aluno_id - Buscar médias por aluno
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/aluno/:aluno_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/aluno/{aluno_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar médias por aluno
+ *     parameters:
+ *       - { in: path, name: aluno_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Médias
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/MediaDisciplinaBimestre' } }
+ */
+router.get('/aluno/:aluno_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarPorAluno
 );
 
-// GET /api/media-disciplina-bimestre/turma/:turma_id/disciplina/:disciplina_id - Buscar médias por turma e disciplina
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/turma/:turma_id/disciplina/:disciplina_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/turma/{turma_id}/disciplina/{disciplina_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar médias por turma e disciplina
+ *     parameters:
+ *       - { in: path, name: turma_id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: disciplina_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Médias
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/MediaDisciplinaBimestre' } }
+ */
+router.get('/turma/:turma_id/disciplina/:disciplina_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarPorTurmaEDisciplina
 );
 
-// GET /api/media-disciplina-bimestre/periodo-letivo/:periodo_letivo_id - Buscar médias por período letivo
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/periodo-letivo/:periodo_letivo_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/periodo-letivo/{periodo_letivo_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar médias por período letivo
+ *     parameters:
+ *       - { in: path, name: periodo_letivo_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Médias
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/MediaDisciplinaBimestre' } }
+ */
+router.get('/periodo-letivo/:periodo_letivo_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarPorPeriodoLetivo
 );
 
-// GET /api/media-disciplina-bimestre/estatisticas/aluno/:aluno_id/periodo-letivo/:periodo_letivo_id - Estatísticas por aluno
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/estatisticas/aluno/:aluno_id/periodo-letivo/:periodo_letivo_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/estatisticas/aluno/{aluno_id}/periodo-letivo/{periodo_letivo_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Estatísticas por aluno e período letivo
+ *     parameters:
+ *       - { in: path, name: aluno_id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: periodo_letivo_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Estatísticas
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ */
+router.get('/estatisticas/aluno/:aluno_id/periodo-letivo/:periodo_letivo_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.obterEstatisticasPorAluno
 );
 
-// GET /api/media-disciplina-bimestre/estatisticas/turma/:turma_id/disciplina/:disciplina_id/periodo-letivo/:periodo_letivo_id - Estatísticas por turma e disciplina
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/estatisticas/turma/:turma_id/disciplina/:disciplina_id/periodo-letivo/:periodo_letivo_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/estatisticas/turma/{turma_id}/disciplina/{disciplina_id}/periodo-letivo/{periodo_letivo_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Estatísticas por turma, disciplina e período letivo
+ *     parameters:
+ *       - { in: path, name: turma_id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: disciplina_id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: periodo_letivo_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Estatísticas
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ */
+router.get('/estatisticas/turma/:turma_id/disciplina/:disciplina_id/periodo-letivo/:periodo_letivo_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.obterEstatisticasPorTurmaDisciplina
 );
 
-// GET /api/media-disciplina-bimestre/:media_disciplina_bimestre_id - Buscar média por ID
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/:media_disciplina_bimestre_id', 
+/**
+ * @openapi
+ * /media-disciplina-bimestre/{media_disciplina_bimestre_id}:
+ *   get:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Buscar média por ID
+ *     parameters:
+ *       - { in: path, name: media_disciplina_bimestre_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Média
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/MediaDisciplinaBimestre' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   put:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Atualizar média (ADMIN/SECRETARIO/PROFESSOR)
+ *     parameters:
+ *       - { in: path, name: media_disciplina_bimestre_id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/MediaDisciplinaBimestreInput' }
+ *     responses:
+ *       200:
+ *         description: Atualizada
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/MediaDisciplinaBimestre' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   delete:
+ *     tags: [Média Disciplina Bimestre]
+ *     summary: Deletar média (ADMIN/SECRETARIO)
+ *     parameters:
+ *       - { in: path, name: media_disciplina_bimestre_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Removida }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
+router.get('/:media_disciplina_bimestre_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.buscarPorId
 );
 
-// POST /api/media-disciplina-bimestre - Criar nova média
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.post('/', 
+router.post('/',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.criar
 );
 
-// PUT /api/media-disciplina-bimestre/:media_disciplina_bimestre_id - Atualizar média
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.put('/:media_disciplina_bimestre_id', 
+router.put('/:media_disciplina_bimestre_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   MediaDisciplinaBimestreController.atualizar
 );
 
-// DELETE /api/media-disciplina-bimestre/:media_disciplina_bimestre_id - Deletar média
-// Permissões: ADMIN, SECRETARIO
-router.delete('/:media_disciplina_bimestre_id', 
+router.delete('/:media_disciplina_bimestre_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   MediaDisciplinaBimestreController.deletar
 );

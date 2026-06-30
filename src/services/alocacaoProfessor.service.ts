@@ -106,6 +106,7 @@ class AlocacaoProfessorService {
       // Verificar duplicatas antes de inserir
       const novasAlocacoes = [];
       const duplicadas = [];
+      const conflitos: string[] = []; // Par turma+disciplina já ocupado por OUTRO professor
 
       for (const alocacao of alocacoes) {
         // Verificar se o usuário existe e é do tipo professor
@@ -123,26 +124,57 @@ class AlocacaoProfessorService {
           throw new Error(`Usuário ${alocacao.professor_id} não é do tipo professor`);
         }
 
-        // Verificar se já existe
-        const existente = await connection('turma_disciplina_professor')
-          .where({
-            turma_id: alocacao.turma_id,
-            disciplina_id: alocacao.disciplina_id,
-            professor_id: alocacao.professor_id // Usando usuario_id diretamente
-          })
+        // Regra: uma disciplina em uma turma só pode ter UM professor.
+        // Buscar qualquer alocação existente para o par (turma, disciplina).
+        const ocupado = await connection('turma_disciplina_professor as tdp')
+          .select(
+            'tdp.professor_id',
+            'd.nome_disciplina',
+            't.nome_turma',
+            's.nome_serie',
+            'u.nome_usuario as nome_professor'
+          )
+          .join('disciplina as d', 'tdp.disciplina_id', 'd.disciplina_id')
+          .join('turma as t', 'tdp.turma_id', 't.turma_id')
+          .join('serie as s', 't.serie_id', 's.serie_id')
+          .join('usuario as u', 'tdp.professor_id', 'u.usuario_id')
+          .where('tdp.turma_id', alocacao.turma_id)
+          .where('tdp.disciplina_id', alocacao.disciplina_id)
           .first();
 
-        if (existente) {
-          duplicadas.push(alocacao);
-        } else {
-          novasAlocacoes.push({
-            turma_id: alocacao.turma_id,
-            disciplina_id: alocacao.disciplina_id,
-            professor_id: alocacao.professor_id, // Salvando usuario_id na coluna professor_id
-            created_at: new Date(),
-            updated_at: new Date()
-          });
+        if (ocupado) {
+          if (ocupado.professor_id === alocacao.professor_id) {
+            // Mesmo professor, mesma turma+disciplina = duplicata (ignora)
+            duplicadas.push(alocacao);
+          } else {
+            // Outro professor já leciona essa disciplina nessa turma = conflito
+            const letraTurma = ocupado.nome_turma.trim().split(/\s+/).pop() || ocupado.nome_turma;
+            const turmaFormatada = letraTurma.length <= 2
+              ? `${ocupado.nome_serie} · Turma ${letraTurma.toUpperCase()}`
+              : ocupado.nome_turma;
+            conflitos.push(
+              `${ocupado.nome_disciplina} em ${turmaFormatada} já está com ${ocupado.nome_professor}`
+            );
+          }
+          continue;
         }
+
+        novasAlocacoes.push({
+          turma_id: alocacao.turma_id,
+          disciplina_id: alocacao.disciplina_id,
+          professor_id: alocacao.professor_id, // Salvando usuario_id na coluna professor_id
+          created_at: new Date(),
+          updated_at: new Date()
+        });
+      }
+
+      // Se houver conflito, aborta o lote inteiro (nada é inserido)
+      if (conflitos.length > 0) {
+        const erro: any = new Error(
+          `Não é possível alocar: ${conflitos.join('; ')}. Cada disciplina só pode ter um professor por turma.`
+        );
+        erro.codigo = 'CONFLITO_DISCIPLINA_TURMA';
+        throw erro;
       }
 
       // Inserir apenas as novas
@@ -160,8 +192,14 @@ class AlocacaoProfessorService {
         duplicadas: duplicadas.length,
         total: alocacoes.length
       };
-    } catch (error) {
+    } catch (error: any) {
       logError('❌ Erro ao criar alocações', 'alocacao', error);
+      // Violação do unique (turma_id, disciplina_id) no Postgres = conflito de regra
+      if (error.code === '23505') {
+        const conflito: any = new Error('Essa disciplina já tem um professor nessa turma.');
+        conflito.codigo = 'CONFLITO_DISCIPLINA_TURMA';
+        throw conflito;
+      }
       throw error;
     }
   }

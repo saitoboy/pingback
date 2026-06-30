@@ -14,6 +14,9 @@ const serializar = (dados: DadosRegistro): Record<string, any> => {
   if (dados.fotos !== undefined) {
     out.fotos = dados.fotos === null ? null : JSON.stringify(dados.fotos);
   }
+  if (dados.anexos !== undefined) {
+    out.anexos = dados.anexos === null ? null : JSON.stringify(dados.anexos);
+  }
   return out;
 };
 

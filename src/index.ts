@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 import { AddressInfo } from "net";
 import connection from "./connection";
@@ -37,17 +39,27 @@ import alocacaoProfessorRoutes from './routes/alocacaoProfessor.routes';
 import professorDisciplinaRoutes from './routes/professorDisciplina.routes';
 import contatoRoutes from './routes/contato.routes';
 import gradeHorarioProfessorRoutes from './routes/gradeHorarioProfessor.routes';
+import feriadoRoutes from './routes/feriado.routes';
+import turmaBreakRoutes from './routes/turmaBreak.routes';
+import turmaSlotRoutes from './routes/turmaSlot.routes';
 
 const app = express();
 
 logInfo('🚀 Inicializando Sistema Escolar Pinguinho API', 'server');
 
+const HOST = process.env.HOST || 'localhost';
+const PORT = Number(process.env.PORT) || 3003;
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5174',
+  // Própria origem da API (Swagger UI em /docs chama a si mesmo)
+  `http://localhost:${PORT}`,
+  `http://${HOST}:${PORT}`,
   'https://pinguinho-pingfront.hvko68.easypanel.host',
   'https://pinguinho-pingfront-test.hvko68.easypanel.host',
+  process.env.SWAGGER_SERVER_URL,
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -185,6 +197,17 @@ app.get("/test-connection", async (req: Request, res: Response) => {
   }
 });
 
+// Documentação Swagger (Swagger UI em /docs, JSON em /docs.json)
+app.get('/docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'Pinguinho API Docs',
+  swaggerOptions: { persistAuthorization: true },
+}));
+logSuccess('📚 Swagger UI disponível em /docs', 'server');
+
 // Registrar as rotas
 logInfo('📝 Registrando rotas da aplicação...', 'route');
 
@@ -285,7 +308,12 @@ app.use('/contato', contatoRoutes);
 logDebug('📧 Rotas de contato registradas', 'route');
 
 app.use('/grade-horario', gradeHorarioProfessorRoutes);
+app.use('/turma-break', turmaBreakRoutes);
+app.use('/turma-slot', turmaSlotRoutes);
 logDebug('📅 Rotas de grade de horários registradas', 'route');
+
+app.use('/feriado', feriadoRoutes);
+logDebug('🎉 Rotas de feriados registradas', 'route');
 
 logSuccess('✅ Todas as rotas registradas com sucesso!', 'route');
 
@@ -309,9 +337,6 @@ app.use((req: Request, res: Response) => {
     mensagem: 'Rota não encontrada'
   });
 });
-
-const HOST = process.env.HOST || 'localhost';
-const PORT = Number(process.env.PORT) || 3003;
 
 const server = app.listen(PORT, HOST, () => {
   if (server) {

@@ -246,9 +246,17 @@ export interface RegistroDiario {
   recursos?: string[]; // Recursos utilizados
   observacoes?: string; // HTML
   fotos?: string[]; // Imagens em base64 (opcional)
+  anexos?: AnexoRegistro[]; // Anexos genéricos (imagem, PDF, outros)
   status: StatusRegistroDiario;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface AnexoRegistro {
+  nome: string; // Nome original do arquivo
+  tipo: string; // MIME type (ex.: application/pdf, image/png)
+  tamanho: number; // Bytes
+  dados: string; // Conteúdo em base64 (data URL)
 }
 
 export interface GradeHorarioProfessor {
@@ -267,6 +275,16 @@ export interface PeriodoLetivo {
   ano_letivo_id: string;
   data_inicio?: Date | string | null;
   data_fim?: Date | string | null;
+  ativo: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Feriado {
+  feriado_id: string;
+  ano_letivo_id: string;
+  data: Date | string;
+  descricao: string;
   created_at: Date;
   updated_at: Date;
 }

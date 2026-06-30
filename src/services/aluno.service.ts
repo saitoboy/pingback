@@ -257,6 +257,32 @@ export class AlunoService {
     }
   }
 
+  static async criarEmLote(lista: Omit<Aluno, 'aluno_id' | 'created_at' | 'updated_at'>[]): Promise<{
+    criados: Aluno[];
+    falhas: { indice: number; cpf: string; motivo: string }[];
+  }> {
+    const criados: Aluno[] = [];
+    const falhas: { indice: number; cpf: string; motivo: string }[] = [];
+
+    for (let i = 0; i < lista.length; i++) {
+      const dados = lista[i];
+      try {
+        const aluno = await this.criarAluno(dados);
+        if (aluno) {
+          criados.push(aluno);
+        } else {
+          falhas.push({ indice: i, cpf: dados.cpf_aluno, motivo: 'CPF/RG duplicado ou idade inválida' });
+        }
+      } catch (error: any) {
+        const motivo = error.code === '23505' ? 'CPF ou RG já cadastrado' : error.message;
+        falhas.push({ indice: i, cpf: dados.cpf_aluno, motivo });
+      }
+    }
+
+    logSuccess(`Lote processado: ${criados.length} criados, ${falhas.length} falhas`, 'service');
+    return { criados, falhas };
+  }
+
   static async obterEstatisticas(): Promise<any> {
     try {
       const estatisticas = await AlunoModel.obterEstatisticas();

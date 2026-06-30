@@ -110,6 +110,16 @@ export class AlocacaoProfessorController {
       });
     } catch (error: any) {
       logError('Erro ao criar alocações', 'controller', error);
+
+      // Conflito de regra: disciplina já tem professor naquela turma
+      if (error.codigo === 'CONFLITO_DISCIPLINA_TURMA') {
+        return res.status(409).json({
+          status: 'erro',
+          codigo: error.codigo,
+          mensagem: error.message
+        });
+      }
+
       return res.status(500).json({
         status: 'erro',
         mensagem: error.message || 'Erro ao criar alocações',

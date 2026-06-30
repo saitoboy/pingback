@@ -160,6 +160,153 @@ class FichaCadastroService {
   }
 
   /**
+   * Processa várias fichas de cadastro em lote.
+   * Cada ficha roda em sua própria transação (sucesso parcial):
+   * uma falha não derruba as demais.
+   */
+  static async processarFichasEmLote(fichas: FichaCadastroCompleta[]): Promise<{
+    criados: { indice: number; nome: string; aluno_id: string; ra: string }[];
+    falhas: { indice: number; nome: string; motivo: string }[];
+  }> {
+    const criados: { indice: number; nome: string; aluno_id: string; ra: string }[] = [];
+    const falhas: { indice: number; nome: string; motivo: string }[] = [];
+
+    for (let i = 0; i < fichas.length; i++) {
+      const ficha = fichas[i];
+      const nome = `${ficha.aluno?.nome_aluno ?? ''} ${ficha.aluno?.sobrenome_aluno ?? ''}`.trim();
+
+      // Validação por item antes de tocar o banco
+      const erros = this.validarFichaCadastro(ficha);
+      if (erros.length > 0) {
+        falhas.push({ indice: i, nome, motivo: erros.join('; ') });
+        continue;
+      }
+
+      try {
+        const resultado = await this.processarFichaCadastro(ficha);
+        criados.push({ indice: i, nome, aluno_id: resultado.aluno.aluno_id, ra: resultado.ra_gerado });
+      } catch (error) {
+        const motivo = error instanceof Error ? error.message : 'Erro desconhecido';
+        falhas.push({ indice: i, nome, motivo });
+        logger.warning(`⚠️ Falha na ficha índice ${i} (${nome}): ${motivo}`, 'ficha-cadastro');
+      }
+    }
+
+    logger.success(`📦 Lote de fichas processado: ${criados.length} criada(s), ${falhas.length} falha(s)`, 'ficha-cadastro');
+    return { criados, falhas };
+  }
+
+  /**
+   * Processa alunos em lote com turma e ano letivo pré-definidos.
+   * Cria: aluno, dados_saude (defaults), diagnostico (defaults) e matrícula.
+   * Sem responsáveis/certidão — podem ser completados depois.
+   * Cada aluno roda em transação própria (falha parcial não cancela os demais).
+   */
+  static async processarFichasSimplificadasEmLote(
+    turma_id: string,
+    ano_letivo_id: string,
+    alunos: Array<{
+      nome_aluno: string;
+      sobrenome_aluno: string;
+      data_nascimento_aluno: Date;
+      cpf_aluno: string;
+      rg_aluno: string;
+      naturalidade_aluno: string;
+      endereco_aluno: string;
+      bairro_aluno: string;
+      cep_aluno: string;
+    }>
+  ): Promise<{
+    criados: { indice: number; nome: string; aluno_id: string; ra: string }[];
+    falhas: { indice: number; nome: string; motivo: string }[];
+  }> {
+    const criados: { indice: number; nome: string; aluno_id: string; ra: string }[] = [];
+    const falhas: { indice: number; nome: string; motivo: string }[] = [];
+
+    for (let i = 0; i < alunos.length; i++) {
+      const dadosAluno = alunos[i];
+      const nome = `${dadosAluno.nome_aluno} ${dadosAluno.sobrenome_aluno}`.trim();
+      const trx = await connection.transaction();
+
+      try {
+        // 1. Criar aluno
+        const aluno = await AlunoModel.criar(dadosAluno as any);
+
+        // 2. Dados de saúde com defaults
+        await DadosSaudeModel.criar({
+          aluno_id: aluno.aluno_id,
+          necessidades_especiais: '',
+          vacinas_em_dia: false,
+          dorme_bem: false,
+          alimenta_se_bem: false,
+          uso_sanitario_sozinho: false,
+          restricao_alimentar: '',
+          problema_saude: '',
+          alergia_medicamento: '',
+          uso_continuo_medicamento: '',
+          alergias: '',
+          medicacao_febre: '',
+          medicacao_dor_cabeca: '',
+          medicacao_dor_barriga: '',
+          historico_convulsao: false,
+          perda_esfincter_emocional: false,
+          frequentou_outra_escola: false,
+          tipo_parto: '',
+          gravidez_tranquila: false,
+          medicacao_gravidez: '',
+          tem_irmaos: false,
+          fonoaudiologico: false,
+          psicopedagogico: false,
+          neurologico: false,
+          outro_tratamento: '',
+          motivo_tratamento: '',
+          observacoes: ''
+        });
+
+        // 3. Diagnóstico com defaults
+        await DiagnosticoModel.criar({
+          aluno_id: aluno.aluno_id,
+          cegueira: false,
+          baixa_visao: false,
+          surdez: false,
+          deficiencia_auditiva: false,
+          surdocegueira: false,
+          deficiencia_fisica: false,
+          deficiencia_multipla: false,
+          deficiencia_intelectual: false,
+          sindrome_down: false,
+          altas_habilidades: false,
+          tea: false,
+          alteracoes_processamento_auditivo: false,
+          tdah: false,
+          outros_diagnosticos: ''
+        });
+
+        // 4. Matrícula
+        const matricula = await MatriculaAlunoModel.criarMatricula({
+          aluno_id: aluno.aluno_id,
+          turma_id,
+          ano_letivo_id,
+          data_matricula: new Date()
+        });
+
+        await trx.commit();
+        criados.push({ indice: i, nome, aluno_id: aluno.aluno_id, ra: matricula.ra });
+        logger.success(`✅ [${i}] ${nome} — RA: ${matricula.ra}`, 'ficha-cadastro-lote');
+
+      } catch (error) {
+        await trx.rollback();
+        const motivo = error instanceof Error ? error.message : 'Erro desconhecido';
+        falhas.push({ indice: i, nome, motivo });
+        logger.warning(`⚠️ [${i}] ${nome}: ${motivo}`, 'ficha-cadastro-lote');
+      }
+    }
+
+    logger.success(`📦 Lote simplificado: ${criados.length} criado(s), ${falhas.length} falha(s)`, 'ficha-cadastro-lote');
+    return { criados, falhas };
+  }
+
+  /**
    * Busca uma ficha cadastro completa por RA
    * Retorna todos os dados relacionados: aluno, certidão, responsáveis, saúde, diagnóstico e matrícula
    */

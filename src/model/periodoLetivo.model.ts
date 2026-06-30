@@ -34,12 +34,22 @@ class PeriodoLetivoModel {
   // Buscar período letivo atual (do ano letivo ativo)
   static async buscarPeriodoLetivoAtual(): Promise<PeriodoLetivo | null> {
     try {
-      const periodo = await connection('periodo_letivo')
-        .join('ano_letivo', 'periodo_letivo.ano_letivo_id', 'ano_letivo.ano_letivo_id')
-        .where('ano_letivo.ativo', true)
-        .orderBy('periodo_letivo.bimestre', 'desc')
+      const periodo = await connection('periodo_letivo as pl')
+        .select(
+          'pl.periodo_letivo_id',
+          'pl.bimestre',
+          'pl.ano_letivo_id',
+          'pl.data_inicio',
+          'pl.data_fim',
+          'pl.ativo',
+          'pl.created_at',
+          'pl.updated_at'
+        )
+        .join('ano_letivo as al', 'pl.ano_letivo_id', 'al.ano_letivo_id')
+        .where('al.ativo', true)
+        .where('pl.ativo', true)
         .first();
-      
+
       return periodo || null;
     } catch (error) {
       throw new Error(`Erro ao buscar período letivo atual: ${error}`);
@@ -114,6 +124,14 @@ class PeriodoLetivoModel {
 
   // Ativar período letivo em todas as matrículas ativas do mesmo ano letivo
   static async ativarPeriodoEmMatriculas(periodo_letivo_id: string, ano_letivo_id: string): Promise<number> {
+    await connection('periodo_letivo')
+      .where('ano_letivo_id', ano_letivo_id)
+      .update({ ativo: false, updated_at: connection.fn.now() });
+
+    await connection('periodo_letivo')
+      .where('periodo_letivo_id', periodo_letivo_id)
+      .update({ ativo: true, updated_at: connection.fn.now() });
+
     const atualizados = await connection('matricula_aluno')
       .where({ ano_letivo_id, status: 'ativo' })
       .update({

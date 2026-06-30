@@ -10,78 +10,215 @@ router.use(autenticar);
 
 // ================ ROTAS BÁSICAS HISTÓRICO ESCOLAR ================
 
-// GET /api/historico-escolar - Listar todos os históricos escolares
-// Permissões: ADMIN, SECRETARIO
-router.get('/', 
+/**
+ * @openapi
+ * /historico-escolar:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Listar históricos escolares (ADMIN/SECRETARIO)
+ *     responses:
+ *       200:
+ *         description: Lista
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/HistoricoEscolar' } }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *   post:
+ *     tags: [Histórico Escolar]
+ *     summary: Criar histórico escolar (ADMIN/SECRETARIO)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/HistoricoEscolarInput' }
+ *     responses:
+ *       201:
+ *         description: Criado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/HistoricoEscolar' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
+router.get('/',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   HistoricoEscolarController.listarTodos
 );
 
-// GET /api/historico-escolar/:historico_escolar_id - Buscar histórico escolar por ID
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/:historico_escolar_id', 
+/**
+ * @openapi
+ * /historico-escolar/{historico_escolar_id}:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Buscar histórico escolar por ID (ADMIN/SECRETARIO/PROFESSOR)
+ *     parameters:
+ *       - { in: path, name: historico_escolar_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Histórico
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/HistoricoEscolar' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   put:
+ *     tags: [Histórico Escolar]
+ *     summary: Atualizar histórico escolar (ADMIN/SECRETARIO)
+ *     parameters:
+ *       - { in: path, name: historico_escolar_id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/HistoricoEscolarInput' }
+ *     responses:
+ *       200:
+ *         description: Atualizado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/HistoricoEscolar' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ *   delete:
+ *     tags: [Histórico Escolar]
+ *     summary: Excluir histórico escolar (apenas ADMIN)
+ *     parameters:
+ *       - { in: path, name: historico_escolar_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Removido }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
+router.get('/:historico_escolar_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   HistoricoEscolarController.buscarPorId
 );
 
-// POST /api/historico-escolar - Criar novo histórico escolar
-// Permissões: ADMIN, SECRETARIO
-router.post('/', 
+router.post('/',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   HistoricoEscolarController.criar
 );
 
-// PUT /api/historico-escolar/:historico_escolar_id - Atualizar histórico escolar
-// Permissões: ADMIN, SECRETARIO
-router.put('/:historico_escolar_id', 
+router.put('/:historico_escolar_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   HistoricoEscolarController.atualizar
 );
 
-// DELETE /api/historico-escolar/:historico_escolar_id - Excluir histórico escolar
-// Permissões: ADMIN
-router.delete('/:historico_escolar_id', 
+router.delete('/:historico_escolar_id',
   autorizarPor([TipoUsuario.ADMIN]),
   HistoricoEscolarController.excluir
 );
 
 // ================ ROTAS DE CONSULTA POR RELACIONAMENTO ================
 
-// GET /api/historico-escolar/matricula/:matricula_aluno_id - Buscar históricos por matrícula
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/matricula/:matricula_aluno_id', 
+/**
+ * @openapi
+ * /historico-escolar/matricula/{matricula_aluno_id}:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Buscar históricos por matrícula
+ *     parameters:
+ *       - { in: path, name: matricula_aluno_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Históricos
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/HistoricoEscolar' } }
+ */
+router.get('/matricula/:matricula_aluno_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   HistoricoEscolarController.buscarPorMatricula
 );
 
-// GET /api/historico-escolar/ano-letivo/:ano_letivo_id - Buscar históricos por ano letivo
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/ano-letivo/:ano_letivo_id', 
+/**
+ * @openapi
+ * /historico-escolar/ano-letivo/{ano_letivo_id}:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Buscar históricos por ano letivo
+ *     parameters:
+ *       - { in: path, name: ano_letivo_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Históricos
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/HistoricoEscolar' } }
+ */
+router.get('/ano-letivo/:ano_letivo_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   HistoricoEscolarController.buscarPorAnoLetivo
 );
 
 // ================ ROTAS ESPECIAIS ================
 
-// GET /api/historico-escolar/completo/:historico_escolar_id - Buscar histórico completo (com boletins)
-// Permissões: ADMIN, SECRETARIO, PROFESSOR
-router.get('/completo/:historico_escolar_id', 
+/**
+ * @openapi
+ * /historico-escolar/completo/{historico_escolar_id}:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Buscar histórico completo (com boletins)
+ *     parameters:
+ *       - { in: path, name: historico_escolar_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Histórico completo
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       404: { $ref: '#/components/responses/NaoEncontrado' }
+ */
+router.get('/completo/:historico_escolar_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO, TipoUsuario.PROFESSOR]),
   HistoricoEscolarController.buscarCompleto
 );
 
-// POST /api/historico-escolar/gerar-automatico - Gerar histórico automático baseado nos boletins
-// Permissões: ADMIN, SECRETARIO
-router.post('/gerar-automatico', 
+/**
+ * @openapi
+ * /historico-escolar/gerar-automatico:
+ *   post:
+ *     tags: [Histórico Escolar]
+ *     summary: Gerar histórico automático baseado nos boletins (ADMIN/SECRETARIO)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               matricula_aluno_id: { type: string, format: uuid }
+ *               ano_letivo_id: { type: string, format: uuid }
+ *     responses:
+ *       201:
+ *         description: Histórico gerado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
+router.post('/gerar-automatico',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   HistoricoEscolarController.gerarAutomatico
 );
 
 // ================ ROTAS DE RELATÓRIOS ================
 
-// GET /api/historico-escolar/relatorio/matricula/:matricula_aluno_id - Relatório completo da matrícula
-// Permissões: ADMIN, SECRETARIO
-router.get('/relatorio/matricula/:matricula_aluno_id', 
+/**
+ * @openapi
+ * /historico-escolar/relatorio/matricula/{matricula_aluno_id}:
+ *   get:
+ *     tags: [Histórico Escolar]
+ *     summary: Relatório completo da matrícula (ADMIN/SECRETARIO)
+ *     parameters:
+ *       - { in: path, name: matricula_aluno_id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Relatório
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Sucesso' }
+ *       403: { $ref: '#/components/responses/ProibidoPermissao' }
+ */
+router.get('/relatorio/matricula/:matricula_aluno_id',
   autorizarPor([TipoUsuario.ADMIN, TipoUsuario.SECRETARIO]),
   HistoricoEscolarController.gerarRelatorioMatricula
 );

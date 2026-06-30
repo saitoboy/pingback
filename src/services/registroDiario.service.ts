@@ -1,5 +1,5 @@
 import * as RegistroDiarioModel from '../model/registroDiario.model';
-import { RegistroDiario, StatusRegistroDiario } from '../types/models';
+import { RegistroDiario, StatusRegistroDiario, AnexoRegistro } from '../types/models';
 import logger from '../utils/logger';
 
 interface DadosUpsert {
@@ -11,6 +11,7 @@ interface DadosUpsert {
   recursos?: string[];
   observacoes?: string;
   fotos?: string[];
+  anexos?: AnexoRegistro[];
   status?: StatusRegistroDiario;
 }
 
@@ -104,6 +105,7 @@ class RegistroDiarioService {
       recursos: dados.recursos ?? [],
       observacoes: dados.observacoes,
       fotos: dados.fotos ?? [],
+      anexos: dados.anexos ?? [],
       status: validarStatus(dados.status),
     };
 
@@ -137,6 +139,7 @@ class RegistroDiarioService {
     if (dados.recursos !== undefined) payload.recursos = dados.recursos;
     if (dados.observacoes !== undefined) payload.observacoes = dados.observacoes;
     if (dados.fotos !== undefined) payload.fotos = dados.fotos;
+    if (dados.anexos !== undefined) payload.anexos = dados.anexos;
     if (dados.status !== undefined) payload.status = validarStatus(dados.status);
 
     const atualizado = await RegistroDiarioModel.atualizar(registro_diario_id, payload);

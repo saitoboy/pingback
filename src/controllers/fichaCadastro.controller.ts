@@ -46,6 +46,52 @@ class FichaCadastroController {
   }
 
   /**
+   * Processa várias fichas de cadastro em lote.
+   * Body esperado: { fichas: FichaCadastroCompleta[] }
+   * Retorna 201 (todas ok), 207 (parcial) ou 400 (nenhuma criada).
+   */
+  static async processarFichasEmLote(req: Request, res: Response): Promise<void> {
+    try {
+      const { fichas } = req.body;
+
+      if (!Array.isArray(fichas) || fichas.length === 0) {
+        res.status(400).json({
+          sucesso: false,
+          mensagem: 'Campo "fichas" deve ser um array não vazio.'
+        });
+        return;
+      }
+
+      if (fichas.length > 100) {
+        res.status(400).json({
+          sucesso: false,
+          mensagem: 'Máximo de 100 fichas por lote.'
+        });
+        return;
+      }
+
+      logger.info(`📦 Iniciando processamento de lote: ${fichas.length} ficha(s)`, 'ficha-cadastro');
+
+      const resultado = await FichaCadastroService.processarFichasEmLote(fichas);
+
+      const status = resultado.falhas.length === 0 ? 201 : resultado.criados.length === 0 ? 400 : 207;
+
+      res.status(status).json({
+        sucesso: resultado.criados.length > 0,
+        mensagem: `${resultado.criados.length} ficha(s) processada(s), ${resultado.falhas.length} falha(s).`,
+        criados: resultado.criados,
+        falhas: resultado.falhas
+      });
+    } catch (error) {
+      logger.error('❌ Erro ao processar lote de fichas', 'ficha-cadastro', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor ao processar lote de fichas'
+      });
+    }
+  }
+
+  /**
    * Busca uma ficha cadastro completa por RA
    * Retorna todos os dados relacionados a uma matrícula
    */
@@ -109,6 +155,98 @@ class FichaCadastroController {
       });
     } catch (error) {
       logger.error('❌ Erro ao listar fichas de cadastro', 'ficha-cadastro', error);
+      res.status(500).json({
+        sucesso: false,
+        mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  }
+
+  /**
+   * Importa alunos em lote com turma e ano letivo definidos.
+   * Body: { turma_id, ano_letivo_id, alunos: [...] }
+   * Cria aluno + dados_saude + diagnostico + matrícula por item.
+   * Falhas parciais não cancelam os demais. Máx 100 alunos.
+   */
+  static async processarFichasCadastroLote(req: Request, res: Response): Promise<void> {
+    try {
+      const { turma_id, ano_letivo_id, alunos } = req.body;
+
+      if (!turma_id?.trim()) {
+        res.status(400).json({ sucesso: false, mensagem: 'turma_id é obrigatório' });
+        return;
+      }
+      if (!ano_letivo_id?.trim()) {
+        res.status(400).json({ sucesso: false, mensagem: 'ano_letivo_id é obrigatório' });
+        return;
+      }
+      if (!Array.isArray(alunos) || alunos.length === 0) {
+        res.status(400).json({ sucesso: false, mensagem: 'Campo "alunos" deve ser array não vazio' });
+        return;
+      }
+      if (alunos.length > 100) {
+        res.status(400).json({ sucesso: false, mensagem: 'Máximo 100 alunos por lote' });
+        return;
+      }
+
+      const camposObrigatorios = [
+        'nome_aluno', 'sobrenome_aluno', 'data_nascimento_aluno',
+        'cpf_aluno', 'rg_aluno', 'naturalidade_aluno',
+        'endereco_aluno', 'bairro_aluno', 'cep_aluno'
+      ];
+
+      const errosValidacao: { indice: number; campos: string[] }[] = [];
+      const alunosProcessados = alunos.map((aluno: any, i: number) => {
+        const faltando = camposObrigatorios.filter(c => !aluno[c]);
+        if (faltando.length > 0) {
+          errosValidacao.push({ indice: i, campos: faltando });
+          return null;
+        }
+
+        const cpfLimpo = String(aluno.cpf_aluno).replace(/\D/g, '');
+        const cepLimpo = String(aluno.cep_aluno).replace(/\D/g, '');
+        const dataNascimento = new Date(aluno.data_nascimento_aluno);
+
+        if (cpfLimpo.length !== 11) { errosValidacao.push({ indice: i, campos: ['cpf_aluno (11 dígitos)'] }); return null; }
+        if (cepLimpo.length !== 8) { errosValidacao.push({ indice: i, campos: ['cep_aluno (8 dígitos)'] }); return null; }
+        if (isNaN(dataNascimento.getTime())) { errosValidacao.push({ indice: i, campos: ['data_nascimento_aluno (YYYY-MM-DD)'] }); return null; }
+
+        return {
+          nome_aluno: String(aluno.nome_aluno).trim(),
+          sobrenome_aluno: String(aluno.sobrenome_aluno).trim(),
+          data_nascimento_aluno: dataNascimento,
+          cpf_aluno: cpfLimpo,
+          rg_aluno: String(aluno.rg_aluno).trim(),
+          naturalidade_aluno: String(aluno.naturalidade_aluno).trim(),
+          endereco_aluno: String(aluno.endereco_aluno).trim(),
+          bairro_aluno: String(aluno.bairro_aluno).trim(),
+          cep_aluno: cepLimpo
+        };
+      });
+
+      if (errosValidacao.length > 0) {
+        res.status(400).json({ sucesso: false, mensagem: 'Erros de validação no lote', erros: errosValidacao });
+        return;
+      }
+
+      logger.info(`📦 Processando lote de ${alunosProcessados.length} aluno(s) → turma ${turma_id}`, 'ficha-cadastro');
+
+      const resultado = await FichaCadastroService.processarFichasSimplificadasEmLote(
+        turma_id,
+        ano_letivo_id,
+        alunosProcessados as any
+      );
+
+      const status = resultado.falhas.length === 0 ? 201 : resultado.criados.length === 0 ? 400 : 207;
+      res.status(status).json({
+        sucesso: resultado.criados.length > 0,
+        mensagem: `${resultado.criados.length} aluno(s) importado(s), ${resultado.falhas.length} falha(s)`,
+        criados: resultado.criados,
+        falhas: resultado.falhas
+      });
+
+    } catch (error) {
+      logger.error('❌ Erro ao processar lote de fichas', 'ficha-cadastro', error);
       res.status(500).json({
         sucesso: false,
         mensagem: error instanceof Error ? error.message : 'Erro interno do servidor'
